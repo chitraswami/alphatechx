@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: chitraswami/alphatechx
+  repository: skswami91/alphatechx
   tag: "latest"
   pullPolicy: IfNotPresent
 
