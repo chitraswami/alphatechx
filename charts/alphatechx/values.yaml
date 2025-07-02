@@ -19,7 +19,7 @@ ingress:
     - host: ""
       paths:
         - path: /alphatechx/(.*)
-          pathType: Prefix
+          pathType: ImplementationSpecific
   tls: []
 
 resources:
