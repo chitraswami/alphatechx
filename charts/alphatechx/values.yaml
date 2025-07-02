@@ -42,6 +42,11 @@ env:
   - name: PORT
     value: "5000"
 
+  - name: JWT_SECRET
+    value: "your-super-secret-jwt-key-change-this-in-production"
+  - name: FRONTEND_URL
+    value: "http://localhost:3000"
+
 nodeSelector: {}
 tolerations: []
 affinity: {} 
