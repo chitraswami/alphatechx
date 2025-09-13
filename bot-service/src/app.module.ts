@@ -7,6 +7,8 @@ import { DocumentAsset } from './entities/document-asset.entity';
 import { TrainingJob } from './entities/training-job.entity';
 import { Subscription } from './entities/subscription.entity';
 import { IntegrationInstallation } from './entities/integration-installation.entity';
+import { MainUser } from './entities/main-user.entity';
+import { AuthModule } from './auth/auth.module';
 import { ProjectsModule } from './projects/projects.module';
 import { BillingModule } from './billing/billing.module';
 import { IntegrationsModule } from './integrations/integrations.module';
@@ -22,7 +24,9 @@ import { TrainingModule } from './training/training.module';
       TrainingJob,
       Subscription,
       IntegrationInstallation,
+      MainUser,
     ]),
+    AuthModule,
     ProjectsModule,
     BillingModule,
     IntegrationsModule,

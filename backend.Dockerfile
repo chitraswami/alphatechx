@@ -19,4 +19,4 @@ RUN mkdir -p uploads
 EXPOSE 5001
 
 # Start the application
-CMD ["node", "backend-simple.js"]
+CMD ["node", "server-simple-auth.js"]
