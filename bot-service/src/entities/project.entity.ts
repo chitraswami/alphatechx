@@ -6,19 +6,18 @@ import { IntegrationInstallation } from './integration-installation.entity';
 
 export type PlanType = 'free' | 'pro' | 'enterprise';
 
-@Entity({ name: 'projects' })
+@Entity('projects')
 export class Project {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: 'varchar', length: 128, default: 'My Bot' })
+  @Column({ default: 'My Bot' })
   name!: string;
 
-  // Links to main app User (_id string) stored as string
-  @Column({ type: 'varchar', length: 64, index: true })
+  @Column()
   ownerUserId!: string;
 
-  @Column({ type: 'varchar', length: 16, default: 'free' })
+  @Column({ default: 'free' })
   plan!: PlanType;
 
   @Column({ type: 'timestamptz', nullable: true })
@@ -36,9 +35,9 @@ export class Project {
   @OneToMany(() => IntegrationInstallation, (i) => i.project)
   installations!: IntegrationInstallation[];
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn()
   createdAt!: Date;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
+  @UpdateDateColumn()
   updatedAt!: Date;
-} 
+}

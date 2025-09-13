@@ -26,7 +26,7 @@ export class ProjectsController {
   @UseInterceptors(FilesInterceptor('files', 10))
   async uploadDocuments(
     @Param('id') id: string,
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFiles() files: any[],
     @CurrentUser() user: any,
   ) {
     if (!files || files.length === 0) throw new BadRequestException('No files uploaded');

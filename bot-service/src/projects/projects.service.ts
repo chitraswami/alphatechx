@@ -29,7 +29,7 @@ export class ProjectsService {
     return project;
   }
 
-  async saveUploadedDocuments(projectId: string, files: Express.Multer.File[]) {
+  async saveUploadedDocuments(projectId: string, files: any[]) {
     const assets = files.map((f) =>
       this.docRepo.create({
         project: { id: projectId } as Project,

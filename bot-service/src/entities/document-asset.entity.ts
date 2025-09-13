@@ -9,18 +9,18 @@ export class DocumentAsset {
   @ManyToOne(() => Project, (p) => p.documents, { onDelete: 'CASCADE' })
   project!: Project;
 
-  @Column({ type: 'varchar', length: 256 })
+  @Column()
   fileName!: string;
 
-  @Column({ type: 'varchar', length: 128 })
+  @Column()
   mimeType!: string;
 
-  @Column({ type: 'bigint' })
+  @Column()
   sizeBytes!: string;
 
   @Column({ type: 'text', nullable: true })
   storageUrl: string | null = null;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn()
   createdAt!: Date;
 } 

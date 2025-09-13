@@ -11,16 +11,16 @@ export class Subscription {
   @ManyToOne(() => Project, (p) => p.subscriptions, { onDelete: 'CASCADE' })
   project!: Project;
 
-  @Column({ type: 'varchar', length: 64, nullable: true })
+  @Column({ type: 'text', nullable: true })
   stripeCustomerId: string | null = null;
 
-  @Column({ type: 'varchar', length: 64, nullable: true })
+  @Column({ type: 'text', nullable: true })
   stripeSubscriptionId: string | null = null;
 
-  @Column({ type: 'varchar', length: 16, default: 'free' })
+  @Column({ default: 'free' })
   plan!: PlanType;
 
-  @Column({ type: 'varchar', length: 16, default: 'trialing' })
+  @Column({ default: 'trialing' })
   status!: SubscriptionStatus;
 
   @Column({ type: 'timestamptz', nullable: true })
@@ -29,9 +29,9 @@ export class Subscription {
   @Column({ type: 'timestamptz', nullable: true })
   currentPeriodEnd: Date | null = null;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn()
   createdAt!: Date;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
+  @UpdateDateColumn()
   updatedAt!: Date;
 } 

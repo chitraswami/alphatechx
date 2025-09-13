@@ -9,18 +9,18 @@ export class IntegrationInstallation {
   @ManyToOne(() => Project, (p) => p.installations, { onDelete: 'CASCADE' })
   project!: Project;
 
-  @Column({ type: 'varchar', length: 64, nullable: true })
+  @Column({ type: 'text', nullable: true })
   slackTeamId: string | null = null;
 
-  @Column({ type: 'varchar', length: 256, nullable: true })
+  @Column({ type: 'text', nullable: true })
   slackBotToken: string | null = null;
 
-  @Column({ type: 'varchar', length: 64, nullable: true })
+  @Column({ type: 'text', nullable: true })
   msTeamsTenantId: string | null = null;
 
-  @Column({ type: 'varchar', length: 128, nullable: true })
+  @Column({ type: 'text', nullable: true })
   msTeamsBotId: string | null = null;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn()
   createdAt!: Date;
 } 

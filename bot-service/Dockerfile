@@ -1,20 +1,21 @@
-# syntax=docker/dockerfile:1
-FROM node:20-alpine AS deps
-WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm ci --no-audit --no-fund
+FROM node:20-alpine
 
-FROM node:20-alpine AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+
+# Copy package files
+COPY package.json ./
+
+# Install dependencies (use npm install since we don't have package-lock.json yet)
+RUN npm install
+
+# Copy source code
 COPY . .
+
+# Build the application
 RUN npm run build
 
-FROM node:20-alpine AS runner
-WORKDIR /app
-ENV NODE_ENV=production
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
-COPY package.json ./package.json
+# Expose port
 EXPOSE 4000
-CMD ["node", "dist/main.js"] 
+
+# Start the application
+CMD ["npm", "run", "start"] 

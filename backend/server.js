@@ -45,6 +45,11 @@ if (process.env.NODE_ENV === 'development') {
 // Static files
 app.use('/uploads', express.static('uploads'));
 
+// Health check route
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', service: 'backend' });
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);

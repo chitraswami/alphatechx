@@ -8,6 +8,11 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
+  // Health check endpoint
+  app.getHttpAdapter().get('/health', (req: any, res: any) => {
+    res.status(200).json({ status: 'ok', service: 'bot-service' });
+  });
+
   const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 4000;
   await app.listen(port);
   // eslint-disable-next-line no-console

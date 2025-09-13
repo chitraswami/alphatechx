@@ -11,16 +11,16 @@ export class TrainingJob {
   @ManyToOne(() => Project, (p) => p.trainingJobs, { onDelete: 'CASCADE' })
   project!: Project;
 
-  @Column({ type: 'varchar', length: 16, default: 'queued' })
+  @Column({ default: 'queued' })
   status!: TrainingStatus;
 
   @Column({ type: 'text', nullable: true })
   errorMessage: string | null = null;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn()
   startedAt!: Date;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
+  @UpdateDateColumn()
   updatedAt!: Date;
 
   @Column({ type: 'timestamptz', nullable: true })
