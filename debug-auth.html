@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Auth - AlphaTechX</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        button { padding: 10px 15px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .output { background: #f8f9fa; padding: 10px; margin: 10px 0; border-radius: 3px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>🔍 AlphaTechX Auth Debug Tool</h1>
+    
+    <div class="section">
+        <h3>📋 Current localStorage Data</h3>
+        <button onclick="showLocalStorage()">Show All localStorage</button>
+        <button onclick="clearAllAuth()">Clear All Auth Data</button>
+        <div id="localStorage-output" class="output"></div>
+    </div>
+    
+    <div class="section">
+        <h3>👤 Register Test User</h3>
+        <button onclick="registerTestUser()">Register Test User</button>
+        <div id="register-output" class="output"></div>
+    </div>
+    
+    <div class="section">
+        <h3>🔐 Test Login</h3>
+        <button onclick="testLogin()">Test Login with Registered User</button>
+        <button onclick="testDemoLogin()">Test Demo Login</button>
+        <div id="login-output" class="output"></div>
+    </div>
+
+    <script>
+        function showLocalStorage() {
+            const output = document.getElementById('localStorage-output');
+            let data = 'localStorage contents:\n\n';
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                data += `${key}: ${value}\n\n`;
+            }
+            
+            if (localStorage.length === 0) {
+                data = 'localStorage is empty';
+            }
+            
+            output.textContent = data;
+        }
+        
+        function clearAllAuth() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+            localStorage.removeItem('registeredUsers');
+            document.getElementById('localStorage-output').textContent = 'Auth data cleared!';
+        }
+        
+        function registerTestUser() {
+            const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+            
+            const testUser = {
+                id: 'test-user-' + Date.now(),
+                firstName: 'Test',
+                lastName: 'User',
+                email: 'test@example.com',
+                password: 'test123',
+                phone: '',
+                company: '',
+                role: 'user',
+                isVerified: true,
+                createdAt: new Date().toISOString()
+            };
+            
+            // Check if already exists
+            const exists = registeredUsers.find(u => u.email === testUser.email);
+            if (exists) {
+                document.getElementById('register-output').textContent = 'Test user already exists!';
+                return;
+            }
+            
+            registeredUsers.push(testUser);
+            localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+            
+            document.getElementById('register-output').textContent = 'Test user registered!\nEmail: test@example.com\nPassword: test123';
+        }
+        
+        function testLogin() {
+            const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+            const output = document.getElementById('login-output');
+            
+            if (registeredUsers.length === 0) {
+                output.textContent = 'No registered users found. Register a test user first.';
+                return;
+            }
+            
+            const testUser = registeredUsers.find(u => u.email === 'test@example.com');
+            if (testUser) {
+                output.textContent = 'Test user found in localStorage:\n' + JSON.stringify(testUser, null, 2);
+            } else {
+                output.textContent = 'Test user not found. All registered users:\n' + JSON.stringify(registeredUsers, null, 2);
+            }
+        }
+        
+        function testDemoLogin() {
+            document.getElementById('login-output').textContent = 'Demo credentials:\nUser: demo@alphatechx.com / demo123\nAdmin: admin@alphatechx.com / admin123';
+        }
+        
+        // Auto-show localStorage on page load
+        window.onload = showLocalStorage;
+    </script>
+</body>
+</html>

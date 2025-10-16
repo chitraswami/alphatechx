@@ -4,10 +4,11 @@ import { IntegrationInstallation } from '../entities/integration-installation.en
 import { Project } from '../entities/project.entity';
 import { IntegrationsController } from './integrations.controller';
 import { IntegrationsService } from './integrations.service';
+import { FileProcessorService } from '../services/file-processor.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([IntegrationInstallation, Project])],
   controllers: [IntegrationsController],
-  providers: [IntegrationsService],
+  providers: [IntegrationsService, FileProcessorService],
 })
 export class IntegrationsModule {} 

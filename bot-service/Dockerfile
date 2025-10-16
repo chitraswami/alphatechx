@@ -18,4 +18,4 @@ RUN npm run build
 EXPOSE 4000
 
 # Start the application
-CMD ["npm", "run", "start"] 
+CMD ["node", "enterprise-bot-server.js"] 

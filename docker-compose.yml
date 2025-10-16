@@ -87,11 +87,17 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: bot_service
+      # OpenAI Configuration
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-your-openai-api-key-here}
+      # Pinecone Configuration
+      PINECONE_API_KEY: ${PINECONE_API_KEY:-your-pinecone-api-key-here}
+      PINECONE_ENVIRONMENT: ${PINECONE_ENVIRONMENT:-us-east-1-aws}
+      PINECONE_INDEX_NAME: ${PINECONE_INDEX_NAME:-alphatechx-docs}
+      # Microsoft Teams Bot Configuration
+      MICROSOFT_APP_ID: ${MICROSOFT_APP_ID:-}
+      MICROSOFT_APP_PASSWORD: ${MICROSOFT_APP_PASSWORD:-}
+      BOT_SERVICE_URL: ${BOT_SERVICE_URL:-http://localhost:4000}
       JWT_SECRET: your-super-secret-jwt-key-change-in-production
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      SLACK_CLIENT_ID: ${SLACK_CLIENT_ID:-}
-      SLACK_CLIENT_SECRET: ${SLACK_CLIENT_SECRET:-}
-      SLACK_SCOPES: commands,chat:write,app_mentions:read,channels:history,groups:history,im:history,mpim:history
       SLACK_REDIRECT_URI: http://localhost:4000/api/slack/oauth/callback
       MS_TEAMS_BOT_APP_ID: ${MS_TEAMS_BOT_APP_ID:-}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
@@ -105,6 +111,11 @@ services:
     depends_on:
       - postgres
     restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   # Frontend Service
   frontend:
