@@ -494,14 +494,19 @@ async function handleQuery(req, res) {
       .map(m => m.metadata?.text || '')
       .join('\n\n');
 
+    console.log('📝 Context being sent to OpenAI:', context.substring(0, 200));
+
     const response = await openaiChat([
       {
         role: 'system',
-        content: `Answer ONLY from the user's documents. If not in context, say so.`
+        content: `You are a helpful AI assistant that answers questions based ONLY on the provided document context.
+- Always use the information from the documents to answer
+- Be specific and mention filenames when relevant
+- If the documents don't contain the answer, say "I don't have that information in your uploaded documents."`
       },
       {
         role: 'user',
-        content: `Documents:\n${context}\n\nQuestion: ${query}`
+        content: `Context from uploaded documents:\n${context}\n\nQuestion: ${query}\n\nAnswer:`
       }
     ]);
 
