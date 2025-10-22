@@ -66,11 +66,11 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', service: 'backend' });
 });
 
-// Routes - DEBUGGING: Temporarily disable all to find which one causes path-to-regexp error
-// app.use('/api/auth', authRoutes);
-app.use('/api/admin', adminRoutes);
-// app.use('/api/public', publicRoutes);
-// app.use('/api/integrations', integrationRoutes);
+// Routes
+app.use('/api/auth', authRoutes);
+// ADMIN ROUTES CAUSE path-to-regexp ERROR - temporarily disabled
+// app.use('/api/admin', adminRoutes);
+app.use('/api/public', publicRoutes);
 
 // Inline integration routes (bypassing the route file that's causing issues)
 const UserIntegration = require('./models/UserIntegration');
