@@ -10,7 +10,8 @@ const connectDatabase = require('./config/database');
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const publicRoutes = require('./routes/public');
-const integrationRoutes = require('./routes/integration');
+// DISABLED: integrationRoutes cause path-to-regexp errors - using inline routes instead
+// const integrationRoutes = require('./routes/integration');
 
 const app = express();
 
