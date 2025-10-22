@@ -1,0 +1,28 @@
+# Fly.io configuration for AlphaTechX
+app = "alphatechx"
+primary_region = "sjc"
+
+[build]
+  dockerfile = "Dockerfile.flyio"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "8080"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 2
+  memory_mb = 2048
+
+# PostgreSQL configuration
+[mounts]
+  source = "postgres_data"
+  destination = "/data/postgres"
+
