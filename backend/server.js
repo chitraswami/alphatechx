@@ -70,7 +70,55 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/public', publicRoutes);
-app.use('/api/integrations', integrationRoutes);
+// TEMPORARILY DISABLED - causing path-to-regexp error
+// app.use('/api/integrations', integrationRoutes);
+
+// Inline integration routes (bypassing the route file that's causing issues)
+const UserIntegration = require('./models/UserIntegration');
+
+// GET /api/integrations/boturl/:userId
+app.get('/api/integrations/boturl/:userId', async (req, res) => {
+  try {
+    const integration = await UserIntegration.findOne({ userId: req.params.userId });
+    res.json({ botServiceUrl: integration?.microsoftBotServiceUrl || '' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching bot service URL' });
+  }
+});
+
+// GET /api/integrations/:userId
+app.get('/api/integrations/:userId', async (req, res) => {
+  try {
+    const integration = await UserIntegration.findOne({ userId: req.params.userId });
+    res.json({ integration });
+  } catch (error) {
+    res.status(404).json({ message: 'Integration not found' });
+  }
+});
+
+// POST /api/integrations/:userId
+app.post('/api/integrations/:userId', async (req, res) => {
+  try {
+    const integration = await UserIntegration.findOneAndUpdate(
+      { userId: req.params.userId },
+      { ...req.body, userId: req.params.userId },
+      { upsert: true, new: true }
+    );
+    res.json({ success: true, integration });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating integration' });
+  }
+});
+
+// DELETE /api/integrations/:userId
+app.delete('/api/integrations/:userId', async (req, res) => {
+  try {
+    await UserIntegration.findOneAndDelete({ userId: req.params.userId });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting integration' });
+  }
+});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
