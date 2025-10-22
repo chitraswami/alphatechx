@@ -1,3 +1,7 @@
+/**
+ * Integration routes - handles user-specific integration settings
+ * Fixed route order to avoid Express path-to-regexp conflicts
+ */
 const express = require('express');
 const router = express.Router();
 const {
