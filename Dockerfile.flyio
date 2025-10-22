@@ -8,6 +8,10 @@ WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm install
 COPY frontend/ ./
+# Set correct API URLs for production
+ENV REACT_APP_API_URL=/api
+ENV REACT_APP_BOT_API_URL=/api
+ENV GENERATE_SOURCEMAP=false
 RUN npm run build
 
 # Build Backend
