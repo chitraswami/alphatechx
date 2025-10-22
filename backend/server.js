@@ -6,11 +6,10 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const connectDatabase = require('./config/database');
 
-// Import routes
-const authRoutes = require('./routes/auth');
-const adminRoutes = require('./routes/admin');
-const publicRoutes = require('./routes/public');
-// DISABLED: integrationRoutes cause path-to-regexp errors - using inline routes instead
+// Import routes - ALL DISABLED to isolate path-to-regexp error
+// const authRoutes = require('./routes/auth');
+// const adminRoutes = require('./routes/admin');
+// const publicRoutes = require('./routes/public');
 // const integrationRoutes = require('./routes/integration');
 
 const app = express();
@@ -67,11 +66,10 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', service: 'backend' });
 });
 
-// Routes
-app.use('/api/auth', authRoutes);
-// ADMIN ROUTES CAUSE path-to-regexp ERROR - temporarily disabled
+// Routes - ALL DISABLED to isolate path-to-regexp error
+// app.use('/api/auth', authRoutes);
 // app.use('/api/admin', adminRoutes);
-app.use('/api/public', publicRoutes);
+// app.use('/api/public', publicRoutes);
 
 // Inline integration routes - using query strings to avoid path-to-regexp issues
 const UserIntegration = require('./models/UserIntegration');
