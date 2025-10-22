@@ -77,20 +77,30 @@ const UserIntegration = require('./models/UserIntegration');
 // GET /api/integrations/boturl?userId=xxx
 app.get('/api/integrations/boturl', async (req, res) => {
   try {
+    console.log('Fetching bot URL for user:', req.query.userId);
     const integration = await UserIntegration.findOne({ userId: req.query.userId });
+    console.log('Found integration:', integration ? 'yes' : 'no');
     res.json({ botServiceUrl: integration?.microsoftBotServiceUrl || '' });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching bot service URL' });
+    console.error('Error fetching bot service URL:', error);
+    res.status(500).json({ message: 'Error fetching bot service URL', error: error.message });
   }
 });
 
 // GET /api/integrations/get?userId=xxx
 app.get('/api/integrations/get', async (req, res) => {
   try {
+    console.log('Fetching integration for user:', req.query.userId);
     const integration = await UserIntegration.findOne({ userId: req.query.userId });
+    if (!integration) {
+      console.log('No integration found for user');
+      return res.status(404).json({ message: 'Integration not found' });
+    }
+    console.log('Integration found:', integration);
     res.json({ integration });
   } catch (error) {
-    res.status(404).json({ message: 'Integration not found' });
+    console.error('Error fetching integration:', error);
+    res.status(500).json({ message: 'Error fetching integration', error: error.message });
   }
 });
 
@@ -98,14 +108,17 @@ app.get('/api/integrations/get', async (req, res) => {
 app.post('/api/integrations/save', async (req, res) => {
   try {
     const { userId, ...integrationData } = req.body;
+    console.log('Saving integration for user:', userId, 'Data:', integrationData);
     const integration = await UserIntegration.findOneAndUpdate(
       { userId },
       { ...integrationData, userId },
       { upsert: true, new: true }
     );
+    console.log('Integration saved successfully:', integration);
     res.json({ success: true, integration });
   } catch (error) {
-    res.status(500).json({ message: 'Error updating integration' });
+    console.error('Error saving integration:', error);
+    res.status(500).json({ message: 'Error updating integration', error: error.message });
   }
 });
 
