@@ -138,8 +138,8 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler
-app.use('*', (req, res) => {
+// 404 handler - using a function instead of '*' to avoid path-to-regexp errors
+app.use((req, res) => {
   res.status(404).json({
     success: false,
     message: 'Route not found',
