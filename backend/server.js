@@ -72,35 +72,36 @@ app.use('/api/auth', authRoutes);
 // app.use('/api/admin', adminRoutes);
 app.use('/api/public', publicRoutes);
 
-// Inline integration routes (bypassing the route file that's causing issues)
+// Inline integration routes - using query strings to avoid path-to-regexp issues
 const UserIntegration = require('./models/UserIntegration');
 
-// GET /api/integrations/boturl/:userId
-app.get('/api/integrations/boturl/:userId', async (req, res) => {
+// GET /api/integrations/boturl?userId=xxx
+app.get('/api/integrations/boturl', async (req, res) => {
   try {
-    const integration = await UserIntegration.findOne({ userId: req.params.userId });
+    const integration = await UserIntegration.findOne({ userId: req.query.userId });
     res.json({ botServiceUrl: integration?.microsoftBotServiceUrl || '' });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching bot service URL' });
   }
 });
 
-// GET /api/integrations/:userId
-app.get('/api/integrations/:userId', async (req, res) => {
+// GET /api/integrations/get?userId=xxx
+app.get('/api/integrations/get', async (req, res) => {
   try {
-    const integration = await UserIntegration.findOne({ userId: req.params.userId });
+    const integration = await UserIntegration.findOne({ userId: req.query.userId });
     res.json({ integration });
   } catch (error) {
     res.status(404).json({ message: 'Integration not found' });
   }
 });
 
-// POST /api/integrations/:userId
-app.post('/api/integrations/:userId', async (req, res) => {
+// POST /api/integrations/save
+app.post('/api/integrations/save', async (req, res) => {
   try {
+    const { userId, ...integrationData } = req.body;
     const integration = await UserIntegration.findOneAndUpdate(
-      { userId: req.params.userId },
-      { ...req.body, userId: req.params.userId },
+      { userId },
+      { ...integrationData, userId },
       { upsert: true, new: true }
     );
     res.json({ success: true, integration });
@@ -109,10 +110,10 @@ app.post('/api/integrations/:userId', async (req, res) => {
   }
 });
 
-// DELETE /api/integrations/:userId
-app.delete('/api/integrations/:userId', async (req, res) => {
+// DELETE /api/integrations/delete?userId=xxx
+app.delete('/api/integrations/delete', async (req, res) => {
   try {
-    await UserIntegration.findOneAndDelete({ userId: req.params.userId });
+    await UserIntegration.findOneAndDelete({ userId: req.query.userId });
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting integration' });
