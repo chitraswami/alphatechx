@@ -101,14 +101,17 @@ app.get('/api/integrations/get', async (req, res) => {
 app.post('/api/integrations/save', async (req, res) => {
   try {
     const { userId, ...integrationData } = req.body;
+    console.log('Saving integration for user:', userId, 'Data:', integrationData);
     const integration = await UserIntegration.findOneAndUpdate(
       { userId },
       { ...integrationData, userId },
       { upsert: true, new: true }
     );
+    console.log('Integration saved successfully:', integration);
     res.json({ success: true, integration });
   } catch (error) {
-    res.status(500).json({ message: 'Error updating integration' });
+    console.error('Error updating integration:', error);
+    res.status(500).json({ message: 'Error updating integration', error: error.message });
   }
 });
 
