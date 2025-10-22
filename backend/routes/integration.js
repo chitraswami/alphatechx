@@ -11,8 +11,8 @@ const {
   getUserBotServiceUrl
 } = require('../controllers/integration');
 
-// GET /api/integrations/bot-url/:userId - Get user's bot service URL for frontend routing
-router.get('/bot-url/:userId', getUserBotServiceUrl);
+// GET /api/integrations/boturl/:userId - Get user's bot service URL for frontend routing
+router.get('/boturl/:userId', getUserBotServiceUrl);
 
 // GET /api/integrations/:userId - Get user's integration settings
 router.get('/:userId', getUserIntegration);
