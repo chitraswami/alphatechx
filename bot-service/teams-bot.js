@@ -398,7 +398,11 @@ function getAdapter(appId, appPassword) {
     console.log(`🔧 Creating new adapter for App ID: ${appId.substring(0, 8)}...`);
     const adapter = new BotFrameworkAdapter({
       appId: appId,
-      appPassword: appPassword
+      appPassword: appPassword,
+      // Use the common endpoint for multi-tenant apps (not Bot Framework tenant)
+      oAuthEndpoint: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
+      openIdMetadata: 'https://login.botframework.com/v1/.well-known/openidconfiguration',
+      channelAuthTenant: 'common'
     });
     
     // Error handler
