@@ -392,17 +392,15 @@ async function sendReplyToAzure(activity, messageText, appId = null, appPassword
 const adapters = new Map();
 
 // Get or create adapter for a user
-function getAdapter(appId, appPassword) {
+function getAdapter(appId, appPassword, tenantId = '279e3c3f-805d-4916-ba7d-bb9862726d6d') {
   const key = `${appId}:${appPassword}`;
   if (!adapters.has(key)) {
-    console.log(`🔧 Creating new adapter for App ID: ${appId.substring(0, 8)}...`);
+    console.log(`🔧 Creating new adapter for App ID: ${appId.substring(0, 8)}... Tenant: ${tenantId}`);
     const adapter = new BotFrameworkAdapter({
       appId: appId,
       appPassword: appPassword,
-      // Use the common endpoint for multi-tenant apps (not Bot Framework tenant)
-      oAuthEndpoint: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
-      openIdMetadata: 'https://login.botframework.com/v1/.well-known/openidconfiguration',
-      channelAuthTenant: 'common'
+      // Use the actual tenant ID for authentication
+      channelAuthTenant: tenantId
     });
     
     // Error handler
