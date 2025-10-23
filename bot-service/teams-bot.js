@@ -392,16 +392,27 @@ async function sendReplyToAzure(activity, messageText, appId = null, appPassword
 const adapters = new Map();
 
 // Get or create adapter for a user
-function getAdapter(appId, appPassword, tenantId = '279e3c3f-805d-4916-ba7d-bb9862726d6d') {
+function getAdapter(appId, appPassword, tenantId = null) {
   const key = `${appId}:${appPassword}`;
   if (!adapters.has(key)) {
-    console.log(`🔧 Creating new adapter for App ID: ${appId.substring(0, 8)}... Tenant: ${tenantId}`);
-    const adapter = new BotFrameworkAdapter({
+    console.log(`🔧 Creating new adapter for App ID: ${appId.substring(0, 8)}...`);
+    
+    // If no tenant specified, use multi-tenant configuration
+    const adapterConfig = {
       appId: appId,
-      appPassword: appPassword,
-      // Use the actual tenant ID for authentication
-      channelAuthTenant: tenantId
-    });
+      appPassword: appPassword
+    };
+    
+    // Only set channelAuthTenant if explicitly provided
+    // Otherwise, let the SDK handle multi-tenant authentication automatically
+    if (tenantId) {
+      adapterConfig.channelAuthTenant = tenantId;
+      console.log(`   Using specific tenant: ${tenantId}`);
+    } else {
+      console.log(`   Using multi-tenant mode (supports all tenants)`);
+    }
+    
+    const adapter = new BotFrameworkAdapter(adapterConfig);
     
     // Error handler
     adapter.onTurnError = async (context, error) => {
