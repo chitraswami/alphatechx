@@ -295,11 +295,13 @@ async function getAzureBotToken(appId, appPassword) {
     });
 
     if (!response.ok) {
-      console.error(`❌ Token request failed: ${response.status}`);
+      const errorText = await response.text();
+      console.error(`❌ Token request failed: ${response.status} - ${errorText}`);
       return null;
     }
 
     const data = await response.json();
+    console.log('✅ Got Azure auth token successfully');
     return data.access_token;
   } catch (error) {
     console.error('❌ Error getting Azure token:', error);
