@@ -278,13 +278,16 @@ async function handleTeamsMessage(activity, userCredentials = null) {
 // Get authentication token from Azure Bot Framework
 async function getAzureBotToken(appId, appPassword) {
   try {
-    const tokenUrl = 'https://login.microsoftonline.com/botframework.com/oauth2/v2.0/token';
+    // Use the common endpoint which works for all tenants
+    const tokenUrl = 'https://login.microsoftonline.com/common/oauth2/v2.0/token';
     const params = new URLSearchParams({
       grant_type: 'client_credentials',
       client_id: appId,
       client_secret: appPassword,
       scope: 'https://api.botframework.com/.default'
     });
+
+    console.log(`🔐 Requesting token for App ID: ${appId.substring(0, 8)}...`);
 
     const response = await fetch(tokenUrl, {
       method: 'POST',
