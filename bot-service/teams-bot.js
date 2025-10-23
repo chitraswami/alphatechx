@@ -7,6 +7,7 @@ const express = require('express');
 const cors = require('cors');
 const https = require('https');
 const multer = require('multer');
+const { BotFrameworkAdapter, TurnContext } = require('botbuilder');
 
 const app = express();
 app.use(cors());
@@ -387,22 +388,43 @@ async function sendReplyToAzure(activity, messageText, appId = null, appPassword
 
 // ==================== API ENDPOINTS ====================
 
-// Teams Webhook Endpoint - Properly sends replies back to Azure Bot Framework
+// Create a map to store adapters per user (for multi-tenant support)
+const adapters = new Map();
+
+// Get or create adapter for a user
+function getAdapter(appId, appPassword) {
+  const key = `${appId}:${appPassword}`;
+  if (!adapters.has(key)) {
+    console.log(`🔧 Creating new adapter for App ID: ${appId.substring(0, 8)}...`);
+    const adapter = new BotFrameworkAdapter({
+      appId: appId,
+      appPassword: appPassword
+    });
+    
+    // Error handler
+    adapter.onTurnError = async (context, error) => {
+      console.error(`❌ Bot error:`, error);
+      await context.sendActivity('Sorry, something went wrong!');
+    };
+    
+    adapters.set(key, adapter);
+  }
+  return adapters.get(key);
+}
+
+// Teams Webhook Endpoint - Using Bot Builder SDK for proper authentication
 app.post('/api/teams/messages', async (req, res) => {
   try {
     console.log('🔔 Teams webhook received');
 
     const activity = req.body;
 
-    // Acknowledge the webhook immediately (Azure requires quick 200 response)
-    res.status(200).send();
-
     // Extract user ID from activity
     const userId = activity.from?.id || activity.conversation?.id || 'unknown-user';
 
     // Fetch user's Microsoft App credentials from MongoDB (via backend)
-    let microsoftAppId = config.microsoftAppId;
-    let microsoftAppPassword = config.microsoftAppPassword;
+    let microsoftAppId = config.microsoftAppId || '';
+    let microsoftAppPassword = config.microsoftAppPassword || '';
 
     try {
       // Try to fetch user-specific credentials from backend
@@ -421,21 +443,47 @@ app.post('/api/teams/messages', async (req, res) => {
       console.warn('⚠️ Could not fetch user credentials, using default config');
     }
 
-    // Handle different activity types
-    if (activity.type === 'message') {
-      const response = await handleTeamsMessage(activity);
-      // Send reply back to Azure Bot Framework with authentication
-      await sendReplyToAzure(activity, response.text, microsoftAppId, microsoftAppPassword);
-      
-    } else if (activity.type === 'conversationUpdate') {
-      // Bot added to conversation
-      await sendReplyToAzure(activity, 'Hello! I\'m your AI assistant. Upload your documents through the web interface, then ask me questions about them here in Teams!', microsoftAppId, microsoftAppPassword);
+    if (!microsoftAppId || !microsoftAppPassword) {
+      console.error('❌ No Microsoft App credentials available');
+      return res.status(401).json({ error: 'Bot not configured' });
     }
-    // Other activity types are acknowledged but no reply needed
+
+    // Get or create adapter for this user's credentials
+    const adapter = getAdapter(microsoftAppId, microsoftAppPassword);
+
+    // Process the activity using Bot Builder SDK (handles auth automatically)
+    await adapter.processActivity(req, res, async (context) => {
+      console.log(`💬 Processing activity type: ${context.activity.type}`);
+
+      if (context.activity.type === 'message') {
+        // User sent a message - query the bot
+        const userMessage = context.activity.text;
+        console.log(`👤 User asked: "${userMessage}"`);
+
+        // Get bot response using our existing logic
+        const response = await handleTeamsMessage(context.activity);
+        
+        // Send reply using SDK (no manual auth needed!)
+        await context.sendActivity(response.text);
+        console.log('✅ Reply sent via Bot Builder SDK');
+        
+      } else if (context.activity.type === 'conversationUpdate') {
+        // Bot added to conversation
+        if (context.activity.membersAdded) {
+          for (const member of context.activity.membersAdded) {
+            if (member.id !== context.activity.recipient.id) {
+              await context.sendActivity('Hello! I\'m your AI assistant. Upload your documents through the web interface, then ask me questions about them here in Teams!');
+            }
+          }
+        }
+      }
+    });
 
   } catch (error) {
     console.error('❌ Teams webhook error:', error);
-    // Response already sent, just log the error
+    if (!res.headersSent) {
+      res.status(500).json({ error: error.message });
+    }
   }
 });
 
