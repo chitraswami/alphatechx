@@ -275,9 +275,57 @@ async function handleTeamsMessage(activity, userCredentials = null) {
 
 // ==================== AZURE BOT FRAMEWORK REPLY ====================
 
-// Function to send reply back to Azure Bot Framework
-async function sendReplyToAzure(activity, messageText) {
+// Get authentication token from Azure Bot Framework
+async function getAzureBotToken(appId, appPassword) {
   try {
+    const tokenUrl = 'https://login.microsoftonline.com/botframework.com/oauth2/v2.0/token';
+    const params = new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: appId,
+      client_secret: appPassword,
+      scope: 'https://api.botframework.com/.default'
+    });
+
+    const response = await fetch(tokenUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: params.toString()
+    });
+
+    if (!response.ok) {
+      console.error(`❌ Token request failed: ${response.status}`);
+      return null;
+    }
+
+    const data = await response.json();
+    return data.access_token;
+  } catch (error) {
+    console.error('❌ Error getting Azure token:', error);
+    return null;
+  }
+}
+
+// Function to send reply back to Azure Bot Framework
+async function sendReplyToAzure(activity, messageText, appId = null, appPassword = null) {
+  try {
+    // Use provided credentials or fall back to config
+    const microsoftAppId = appId || config.microsoftAppId;
+    const microsoftAppPassword = appPassword || config.microsoftAppPassword;
+
+    // Get authentication token
+    let authToken = null;
+    if (microsoftAppId && microsoftAppPassword) {
+      authToken = await getAzureBotToken(microsoftAppId, microsoftAppPassword);
+      if (!authToken) {
+        console.error('❌ Failed to get Azure auth token');
+        return;
+      }
+    } else {
+      console.warn('⚠️ No Microsoft App credentials provided - reply may fail');
+    }
+
     // Build the reply URL
     const serviceUrl = activity.serviceUrl;
     const conversationId = activity.conversation.id;
@@ -297,11 +345,17 @@ async function sendReplyToAzure(activity, messageText) {
     };
 
     // Send the reply to Azure Bot Framework
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+
     const response = await fetch(replyUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(reply)
     });
 
@@ -330,21 +384,39 @@ app.post('/api/teams/messages', async (req, res) => {
     // Acknowledge the webhook immediately (Azure requires quick 200 response)
     res.status(200).send();
 
-    // Extract user credentials from headers (for future Azure Bot Framework integration)
-    const userCredentials = {
-      microsoftAppId: req.headers['x-microsoft-app-id'],
-      microsoftAppPassword: req.headers['x-microsoft-app-password']
-    };
+    // Extract user ID from activity
+    const userId = activity.from?.id || activity.conversation?.id || 'unknown-user';
+
+    // Fetch user's Microsoft App credentials from MongoDB (via backend)
+    let microsoftAppId = config.microsoftAppId;
+    let microsoftAppPassword = config.microsoftAppPassword;
+
+    try {
+      // Try to fetch user-specific credentials from backend
+      const backendUrl = process.env.BACKEND_URL || 'http://localhost:5001';
+      const integrationResponse = await fetch(`${backendUrl}/api/integrations/get?userId=${userId}`);
+      
+      if (integrationResponse.ok) {
+        const data = await integrationResponse.json();
+        if (data.integration) {
+          microsoftAppId = data.integration.microsoftAppId || microsoftAppId;
+          microsoftAppPassword = data.integration.microsoftAppPassword || microsoftAppPassword;
+          console.log(`🔑 Using user-specific credentials for ${userId}`);
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ Could not fetch user credentials, using default config');
+    }
 
     // Handle different activity types
     if (activity.type === 'message') {
-      const response = await handleTeamsMessage(activity, userCredentials);
-      // Send reply back to Azure Bot Framework
-      await sendReplyToAzure(activity, response.text);
+      const response = await handleTeamsMessage(activity);
+      // Send reply back to Azure Bot Framework with authentication
+      await sendReplyToAzure(activity, response.text, microsoftAppId, microsoftAppPassword);
       
     } else if (activity.type === 'conversationUpdate') {
       // Bot added to conversation
-      await sendReplyToAzure(activity, 'Hello! I\'m your AI assistant. Upload your documents through the web interface, then ask me questions about them here in Teams!');
+      await sendReplyToAzure(activity, 'Hello! I\'m your AI assistant. Upload your documents through the web interface, then ask me questions about them here in Teams!', microsoftAppId, microsoftAppPassword);
     }
     // Other activity types are acknowledged but no reply needed
 
