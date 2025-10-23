@@ -273,14 +273,62 @@ async function handleTeamsMessage(activity, userCredentials = null) {
   }
 }
 
+// ==================== AZURE BOT FRAMEWORK REPLY ====================
+
+// Function to send reply back to Azure Bot Framework
+async function sendReplyToAzure(activity, messageText) {
+  try {
+    // Build the reply URL
+    const serviceUrl = activity.serviceUrl;
+    const conversationId = activity.conversation.id;
+    const activityId = activity.id;
+    const replyUrl = `${serviceUrl}v3/conversations/${conversationId}/activities/${activityId}`;
+
+    console.log(`📤 Sending reply to Azure: ${replyUrl}`);
+
+    // Prepare the reply activity
+    const reply = {
+      type: 'message',
+      from: activity.recipient,
+      recipient: activity.from,
+      conversation: activity.conversation,
+      text: messageText,
+      replyToId: activityId
+    };
+
+    // Send the reply to Azure Bot Framework
+    const response = await fetch(replyUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(reply)
+    });
+
+    if (!response.ok) {
+      console.error(`❌ Azure reply failed: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      console.error(`Error details: ${errorText}`);
+    } else {
+      console.log('✅ Reply sent successfully to Azure');
+    }
+
+  } catch (error) {
+    console.error('❌ Error sending reply to Azure:', error);
+  }
+}
+
 // ==================== API ENDPOINTS ====================
 
-// Teams Webhook Endpoint - Now accepts user credentials via headers
+// Teams Webhook Endpoint - Properly sends replies back to Azure Bot Framework
 app.post('/api/teams/messages', async (req, res) => {
   try {
     console.log('🔔 Teams webhook received');
 
     const activity = req.body;
+
+    // Acknowledge the webhook immediately (Azure requires quick 200 response)
+    res.status(200).send();
 
     // Extract user credentials from headers (for future Azure Bot Framework integration)
     const userCredentials = {
@@ -291,20 +339,18 @@ app.post('/api/teams/messages', async (req, res) => {
     // Handle different activity types
     if (activity.type === 'message') {
       const response = await handleTeamsMessage(activity, userCredentials);
-      res.json(response);
+      // Send reply back to Azure Bot Framework
+      await sendReplyToAzure(activity, response.text);
+      
     } else if (activity.type === 'conversationUpdate') {
       // Bot added to conversation
-      res.json({
-        type: 'message',
-        text: 'Hello! I\'m your AI assistant. Upload your documents through the web interface, then ask me questions about them here in Teams!'
-      });
-    } else {
-      res.json({ type: 'message', text: 'Hello! How can I help you today?' });
+      await sendReplyToAzure(activity, 'Hello! I\'m your AI assistant. Upload your documents through the web interface, then ask me questions about them here in Teams!');
     }
+    // Other activity types are acknowledged but no reply needed
 
   } catch (error) {
     console.error('❌ Teams webhook error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    // Response already sent, just log the error
   }
 });
 
