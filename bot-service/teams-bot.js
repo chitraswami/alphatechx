@@ -313,28 +313,16 @@ async function getAzureBotToken(appId, appPassword) {
 }
 
 // Function to send reply back to Azure Bot Framework
+// Uses Bot Connector Service REST API
 async function sendReplyToAzure(activity, messageText, appId = null, appPassword = null) {
   try {
-    // Use provided credentials or fall back to config
-    const microsoftAppId = appId || config.microsoftAppId;
-    const microsoftAppPassword = appPassword || config.microsoftAppPassword;
-
-    // Get authentication token
-    let authToken = null;
-    if (microsoftAppId && microsoftAppPassword) {
-      authToken = await getAzureBotToken(microsoftAppId, microsoftAppPassword);
-      if (!authToken) {
-        console.error('❌ Failed to get Azure auth token');
-        return;
-      }
-    } else {
-      console.warn('⚠️ No Microsoft App credentials provided - reply may fail');
-    }
-
-    // Build the reply URL
+    // For Web Chat, we can reply directly without auth token
+    // The activity itself contains the authorization context
     const serviceUrl = activity.serviceUrl;
     const conversationId = activity.conversation.id;
     const activityId = activity.id;
+    
+    // Web Chat uses a simpler endpoint
     const replyUrl = `${serviceUrl}v3/conversations/${conversationId}/activities/${activityId}`;
 
     console.log(`📤 Sending reply to Azure: ${replyUrl}`);
@@ -349,25 +337,45 @@ async function sendReplyToAzure(activity, messageText, appId = null, appPassword
       replyToId: activityId
     };
 
-    // Send the reply to Azure Bot Framework
-    const headers = {
-      'Content-Type': 'application/json',
-    };
-
-    if (authToken) {
-      headers['Authorization'] = `Bearer ${authToken}`;
-    }
-
+    // For Web Chat, no auth token needed - Azure authenticates the connection
     const response = await fetch(replyUrl, {
       method: 'POST',
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(reply)
     });
 
     if (!response.ok) {
-      console.error(`❌ Azure reply failed: ${response.status} ${response.statusText}`);
       const errorText = await response.text();
+      console.error(`❌ Azure reply failed: ${response.status} ${response.statusText}`);
       console.error(`Error details: ${errorText}`);
+      
+      // If that fails, try posting to conversation instead of replying to activity
+      console.log('🔄 Trying alternate method: POST to conversation...');
+      const alternateUrl = `${serviceUrl}v3/conversations/${conversationId}/activities`;
+      const alternateReply = {
+        type: 'message',
+        from: activity.recipient,
+        recipient: activity.from,
+        conversation: activity.conversation,
+        text: messageText
+      };
+      
+      const alternateResponse = await fetch(alternateUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(alternateReply)
+      });
+      
+      if (alternateResponse.ok) {
+        console.log('✅ Reply sent successfully via alternate method');
+      } else {
+        const altError = await alternateResponse.text();
+        console.error(`❌ Alternate method also failed: ${alternateResponse.status} - ${altError}`);
+      }
     } else {
       console.log('✅ Reply sent successfully to Azure');
     }
