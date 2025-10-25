@@ -10,6 +10,7 @@ const connectDatabase = require('./config/database');
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const publicRoutes = require('./routes/public');
+const workspaceRoutes = require('./routes/workspace');
 // integrationRoutes handled inline to use query strings
 
 const app = express();
@@ -73,6 +74,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/public', publicRoutes);
+app.use('/api/workspaces', workspaceRoutes);
 
 // Inline integration routes - using query strings to avoid path-to-regexp issues
 const UserIntegration = require('./models/UserIntegration');

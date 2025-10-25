@@ -218,31 +218,67 @@ async function handleTeamsMessage(activity, userCredentials = null) {
   try {
     console.log('📱 Teams message received:', JSON.stringify(activity, null, 2));
 
-    // Extract user ID and message text
-    const userId = activity.from?.id || activity.conversation?.id || 'unknown-user';
+    // Extract Teams user ID and message text
+    const teamsUserId = activity.from?.id || activity.conversation?.id || 'unknown-user';
     const messageText = activity.text || '';
 
     if (!messageText.trim()) {
       return {
         type: 'message',
-        text: 'Hello! I\'m your AI assistant. Please ask me a question about your uploaded documents.'
+        text: 'Hello! I\'m your AI assistant. Please ask me a question about your workspace documents.'
       };
     }
 
-    console.log(`🔍 Teams query from ${userId}: "${messageText}"`);
+    console.log(`🔍 Teams query from ${teamsUserId}: "${messageText}"`);
+
+    // Check if user has a workspace
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:5001';
+    let workspaceId = null;
+    let workspaceName = null;
+
+    try {
+      const response = await fetch(`${backendUrl}/api/workspaces/by-teams-user?teamsUserId=${encodeURIComponent(teamsUserId)}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.hasWorkspace) {
+          workspaceId = data.workspace.workspaceId;
+          workspaceName = data.workspace.name;
+          console.log(`✅ Found workspace: ${workspaceId} (${workspaceName})`);
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ Could not fetch workspace info:', error.message);
+    }
+
+    if (!workspaceId) {
+      return {
+        type: 'message',
+        text: `👋 Welcome! It looks like you haven't set up a workspace yet.
+
+📝 **To get started:**
+1. Go to https://alphatechx.fly.dev
+2. Create a new workspace or join an existing one
+3. Upload your documents
+4. Come back here and ask me anything!
+
+Need help? Just ask! 😊`
+      };
+    }
 
     // Generate embedding for the query
     const queryEmbedding = await openaiEmbedding(messageText);
-    const userNamespace = `user-${userId}`;
+    const workspaceNamespace = `workspace-${workspaceId}`;
 
-    // Query Pinecone
-    const searchResults = await pineconeQuery(userNamespace, queryEmbedding, 3);
-    console.log(`📚 Found ${searchResults.matches?.length || 0} docs for ${userId}`);
+    // Query Pinecone using workspace namespace
+    const searchResults = await pineconeQuery(workspaceNamespace, queryEmbedding, 3);
+    console.log(`📚 Found ${searchResults.matches?.length || 0} docs in workspace ${workspaceName}`);
 
     if (!searchResults.matches || searchResults.matches.length === 0) {
       return {
         type: 'message',
-        text: `I don't have any documents uploaded for your account yet. Please upload some documents first through the web interface, then I'll be able to help you with questions about them!`
+        text: `I don't have any documents in your workspace "${workspaceName}" yet. 
+
+📝 Please upload documents at https://alphatechx.fly.dev to get started!`
       };
     }
 
@@ -255,13 +291,13 @@ async function handleTeamsMessage(activity, userCredentials = null) {
     const response = await openaiChat([
       {
         role: 'system',
-        content: `You are an AI assistant helping users with questions about their uploaded documents.
+        content: `You are an AI assistant helping users with questions about their workspace documents.
         Answer based on the provided context. If the context doesn't contain relevant information,
         say so politely. Be helpful and concise. Keep responses under 200 words for Teams chat.`
       },
       {
         role: 'user',
-        content: `Context from user's documents:\n${context}\n\nUser question: ${messageText}`
+        content: `Context from workspace "${workspaceName}" documents:\n${context}\n\nUser question: ${messageText}`
       }
     ]);
 
@@ -460,15 +496,23 @@ app.post('/api/teams/messages', async (req, res) => {
         if (context.activity.membersAdded) {
           for (const member of context.activity.membersAdded) {
             if (member.id !== context.activity.recipient.id) {
-              const welcomeMessage = `👋 Hello! I'm AlphaTechX Bot, your AI assistant.
+              // Get user's email or name if available
+              const userName = context.activity.from?.name || 'there';
+              const userEmail = context.activity.from?.aadObjectId || null;
+              
+              const welcomeMessage = `👋 Hi ${userName}! I'm AlphaTechX Bot.
 
-📝 **To get started:**
-1. Go to https://alphatechx.fly.dev
-2. Sign up with your Teams user ID: \`${userId}\`
-3. Upload your documents
-4. Come back here and ask me questions!
+🚀 **I'm ready to help!** Just ask me questions about your documents.
 
-I'll answer based on YOUR uploaded documents only. Each user has their own private knowledge base. 🔒`;
+📝 **First time?** Set up your workspace:
+1. Go to: https://alphatechx.fly.dev
+2. Click "Connect with Teams"
+3. Upload your team's documents
+4. Come back and ask me anything!
+
+💡 **Pro tip:** You can share this bot with your team! Once documents are uploaded, everyone in your team can ask questions.
+
+🔒 Your data is private and secure - only your team can access it.`;
               
               await context.sendActivity(welcomeMessage);
               console.log(`✅ Sent welcome message to ${userId}`);
