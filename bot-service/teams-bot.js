@@ -26,12 +26,17 @@ const config = {
   openaiApiKey: process.env.OPENAI_API_KEY,
   pineconeApiKey: process.env.PINECONE_API_KEY,
   pineconeHost: process.env.PINECONE_HOST || 'alphatechx-docs-0pg6xsr.svc.aped-4627-b74a.pinecone.io',
-  // Microsoft credentials will be provided per user via API calls
+  // AlphaTechX Company Bot - Serves ALL customers
+  microsoftAppId: process.env.MICROSOFT_APP_ID || '897997b6-abe3-40cd-b257-29e8c2117f85',
+  microsoftAppPassword: process.env.MICROSOFT_APP_PASSWORD || 'svW8Q~HfwQcfd12EyBcbUUbwsg1Qur9P6FLXndAo',
+  microsoftTenantId: process.env.MICROSOFT_TENANT_ID || '460fb4b5-0450-4532-8a69-978be450f548'
 };
 
 console.log('🚀 Starting Teams Enterprise Bot...');
 console.log('📊 Pinecone:', config.pineconeHost);
-console.log('📱 Teams: User-provided credentials required');
+console.log('📱 Teams Bot ID:', config.microsoftAppId);
+console.log('🏢 Tenant ID:', config.microsoftTenantId);
+console.log('🎯 Mode: Single Company Bot (serves all customers)');
 
 // Pinecone REST API - Upsert
 function pineconeUpsert(namespace, vectors) {
@@ -391,101 +396,82 @@ async function sendReplyToAzure(activity, messageText, appId = null, appPassword
 // Create a map to store adapters per user (for multi-tenant support)
 const adapters = new Map();
 
-// Get or create adapter for a user
-function getAdapter(appId, appPassword, tenantId = null) {
+// Get or create adapter for AlphaTechX company bot
+function getAdapter(appId = config.microsoftAppId, appPassword = config.microsoftAppPassword, tenantId = config.microsoftTenantId) {
   const key = `${appId}:${appPassword}`;
   if (!adapters.has(key)) {
-    console.log(`🔧 Creating new adapter for App ID: ${appId.substring(0, 8)}...`);
+    console.log(`🔧 Creating adapter for AlphaTechX Bot`);
+    console.log(`   App ID: ${appId.substring(0, 8)}...`);
+    console.log(`   Tenant: ${tenantId}`);
     
-    // If no tenant specified, use multi-tenant configuration
     const adapterConfig = {
       appId: appId,
-      appPassword: appPassword
+      appPassword: appPassword,
+      channelAuthTenant: tenantId
     };
-    
-    // Only set channelAuthTenant if explicitly provided
-    // Otherwise, let the SDK handle multi-tenant authentication automatically
-    if (tenantId) {
-      adapterConfig.channelAuthTenant = tenantId;
-      console.log(`   Using specific tenant: ${tenantId}`);
-    } else {
-      console.log(`   Using multi-tenant mode (supports all tenants)`);
-    }
     
     const adapter = new BotFrameworkAdapter(adapterConfig);
     
     // Error handler
     adapter.onTurnError = async (context, error) => {
       console.error(`❌ Bot error:`, error);
-      await context.sendActivity('Sorry, something went wrong!');
+      await context.sendActivity('Sorry, something went wrong! Please try again or contact support.');
     };
     
     adapters.set(key, adapter);
+    console.log(`✅ Adapter created and cached`);
   }
   return adapters.get(key);
 }
 
 // Teams Webhook Endpoint - Using Bot Builder SDK for proper authentication
+// This endpoint serves ALL customers through the single AlphaTechX company bot
 app.post('/api/teams/messages', async (req, res) => {
   try {
     console.log('🔔 Teams webhook received');
 
     const activity = req.body;
 
-    // Extract user ID from activity
+    // Extract user ID from activity - this identifies which customer is chatting
     const userId = activity.from?.id || activity.conversation?.id || 'unknown-user';
+    console.log(`👤 User: ${userId}`);
 
-    // Fetch user's Microsoft App credentials from MongoDB (via backend)
-    let microsoftAppId = config.microsoftAppId || '';
-    let microsoftAppPassword = config.microsoftAppPassword || '';
-
-    try {
-      // Try to fetch user-specific credentials from backend
-      const backendUrl = process.env.BACKEND_URL || 'http://localhost:5001';
-      const integrationResponse = await fetch(`${backendUrl}/api/integrations/get?userId=${userId}`);
-      
-      if (integrationResponse.ok) {
-        const data = await integrationResponse.json();
-        if (data.integration) {
-          microsoftAppId = data.integration.microsoftAppId || microsoftAppId;
-          microsoftAppPassword = data.integration.microsoftAppPassword || microsoftAppPassword;
-          console.log(`🔑 Using user-specific credentials for ${userId}`);
-        }
-      }
-    } catch (error) {
-      console.warn('⚠️ Could not fetch user credentials, using default config');
-    }
-
-    if (!microsoftAppId || !microsoftAppPassword) {
-      console.error('❌ No Microsoft App credentials available');
-      return res.status(401).json({ error: 'Bot not configured' });
-    }
-
-    // Get or create adapter for this user's credentials
-    const adapter = getAdapter(microsoftAppId, microsoftAppPassword);
+    // Use the AlphaTechX company bot (serves all customers)
+    const adapter = getAdapter();
 
     // Process the activity using Bot Builder SDK (handles auth automatically)
     await adapter.processActivity(req, res, async (context) => {
-      console.log(`💬 Processing activity type: ${context.activity.type}`);
+      console.log(`💬 Activity type: ${context.activity.type}`);
 
       if (context.activity.type === 'message') {
-        // User sent a message - query the bot
+        // User sent a message - query their personal knowledge base
         const userMessage = context.activity.text;
-        console.log(`👤 User asked: "${userMessage}"`);
+        console.log(`👤 User ${userId} asked: "${userMessage}"`);
 
-        // Get bot response using our existing logic
+        // Get bot response from user's personal documents (isolated by namespace)
         const response = await handleTeamsMessage(context.activity);
         
-        // Send reply using SDK (no manual auth needed!)
+        // Send reply using SDK (authentication handled automatically!)
         await context.sendActivity(response.text);
-        console.log('✅ Reply sent via Bot Builder SDK');
+        console.log('✅ Reply sent to user');
         
       } else if (context.activity.type === 'conversationUpdate') {
-        // Bot added to conversation
+        // Bot added to conversation - welcome message
         if (context.activity.membersAdded) {
           for (const member of context.activity.membersAdded) {
             if (member.id !== context.activity.recipient.id) {
-              await context.sendActivity('Hello! I\'m your AI assistant. Upload your documents through the web interface, then ask me questions about them here in Teams!');
+              const welcomeMessage = `👋 Hello! I'm AlphaTechX Bot, your AI assistant.
+
+📝 **To get started:**
+1. Go to https://alphatechx.fly.dev
+2. Sign up with your Teams user ID: \`${userId}\`
+3. Upload your documents
+4. Come back here and ask me questions!
+
+I'll answer based on YOUR uploaded documents only. Each user has their own private knowledge base. 🔒`;
+              
+              await context.sendActivity(welcomeMessage);
+              console.log(`✅ Sent welcome message to ${userId}`);
             }
           }
         }

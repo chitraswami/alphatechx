@@ -1,0 +1,66 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.16/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.16",
+  "version": "1.0.0",
+  "id": "897997b6-abe3-40cd-b257-29e8c2117f85",
+  "packageName": "com.alphatechx.bot",
+  "developer": {
+    "name": "AlphaTechX",
+    "websiteUrl": "https://alphatechx.fly.dev",
+    "privacyUrl": "https://alphatechx.fly.dev/privacy",
+    "termsOfUseUrl": "https://alphatechx.fly.dev/terms"
+  },
+  "name": {
+    "short": "AlphaTechX Bot",
+    "full": "AlphaTechX AI Assistant Bot"
+  },
+  "description": {
+    "short": "Your personal AI assistant powered by your documents",
+    "full": "AlphaTechX Bot helps you get instant answers from your uploaded documents. Upload files through our web interface, then ask questions directly in Teams!"
+  },
+  "icons": {
+    "outline": "outline.png",
+    "color": "color.png"
+  },
+  "accentColor": "#4F46E5",
+  "bots": [
+    {
+      "botId": "897997b6-abe3-40cd-b257-29e8c2117f85",
+      "scopes": [
+        "personal",
+        "team",
+        "groupchat"
+      ],
+      "supportsFiles": false,
+      "isNotificationOnly": false,
+      "commandLists": [
+        {
+          "scopes": [
+            "personal",
+            "team",
+            "groupchat"
+          ],
+          "commands": [
+            {
+              "title": "help",
+              "description": "Get help using the bot"
+            },
+            {
+              "title": "status",
+              "description": "Check your bot status and uploaded documents"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "permissions": [
+    "identity",
+    "messageTeamMembers"
+  ],
+  "validDomains": [
+    "alphatechx.fly.dev",
+    "*.botframework.com"
+  ]
+}
+
