@@ -576,13 +576,13 @@ app.post('/api/uploads/files', upload.array('files', 20), async (req, res) => {
           const embedding = await openaiEmbedding(doc.text);
           console.log(`  ✅ Embedding generated (${embedding.length} dims)`);
           
-          await pineconeUpsert(userNamespace, [{
+          await pineconeUpsert(workspaceNamespace, [{
             id: doc.id || `doc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             values: embedding,
             metadata: {
               text: doc.text,
               filename: doc.filename,
-              userId
+              workspaceId
             }
           }]);
 
@@ -591,7 +591,7 @@ app.post('/api/uploads/files', upload.array('files', 20), async (req, res) => {
             filename: doc.filename, 
             status: 'completed' 
           });
-          console.log(`  ✅ Uploaded to namespace: ${userNamespace}`);
+          console.log(`  ✅ Uploaded to namespace: ${workspaceNamespace}`);
         } catch (error) {
           console.error(`  ❌ Failed:`, error.message);
           processed.push({ 
@@ -620,13 +620,13 @@ app.post('/api/uploads/files', upload.array('files', 20), async (req, res) => {
           console.log(`  ✅ Embedding generated (${embedding.length} dims)`);
           
           // Store in Pinecone
-          await pineconeUpsert(userNamespace, [{
+          await pineconeUpsert(workspaceNamespace, [{
             id: `doc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             values: embedding,
             metadata: {
               text: textContent,
               filename: file.originalname,
-              userId,
+              workspaceId,
               fileType: file.mimetype,
               fileSize: file.size
             }
@@ -653,15 +653,30 @@ app.post('/api/uploads/files', upload.array('files', 20), async (req, res) => {
       }
     }
 
-    console.log(`🎉 Upload complete: ${processed.length} files processed for ${userId}`);
+    console.log(`🎉 Upload complete: ${processed.length} files processed for workspace ${workspaceId}`);
+
+    // Update workspace document count
+    try {
+      const backendUrl = process.env.BACKEND_URL || 'http://localhost:5001';
+      await fetch(`${backendUrl}/api/workspaces/update-documents`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          workspaceId, 
+          count: processed.filter(p => p.status === 'completed').length 
+        })
+      });
+    } catch (error) {
+      console.warn('⚠️ Could not update workspace document count:', error.message);
+    }
 
     res.json({
       success: true,
-      userId,
-      namespace: userNamespace,
+      workspaceId,
+      namespace: workspaceNamespace,
       files: processed,
       documents: processed,
-      message: `Processed ${processed.length} files for user: ${userId}`
+      message: `Processed ${processed.length} files for workspace: ${workspaceId}`
     });
 
   } catch (error) {
@@ -673,41 +688,35 @@ app.post('/api/uploads/files', upload.array('files', 20), async (req, res) => {
 // Query endpoint - Support both /api/query and /api/uploads/test-query
 async function handleQuery(req, res) {
   try {
-    let { userId, query } = req.body;
+    const { workspaceId, query } = req.body;
     
-    // Get userId from token if not provided
-    if (!userId) {
-      const authHeader = req.headers.authorization;
-      if (authHeader) {
-        const token = authHeader.replace('Bearer ', '');
-        try {
-          const decoded = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
-          userId = decoded.userId || decoded.sub || decoded.email;
-        } catch (e) {
-          userId = 'demo-user';
-        }
-      } else {
-        userId = 'demo-user';
-      }
+    if (!workspaceId) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Workspace ID is required. Please select or create a workspace first.' 
+      });
     }
 
     if (!query) {
-      return res.status(400).json({ error: 'query required' });
+      return res.status(400).json({ 
+        success: false,
+        error: 'Query is required' 
+      });
     }
 
-    console.log(`🔍 User ${userId} asks: "${query}"`);
+    console.log(`🔍 Workspace ${workspaceId} asks: "${query}"`);
 
     const queryEmbedding = await openaiEmbedding(query);
-    const userNamespace = `user-${userId}`;
+    const workspaceNamespace = `workspace-${workspaceId}`;
     
-    const searchResults = await pineconeQuery(userNamespace, queryEmbedding, 3);
-    console.log(`📚 Found ${searchResults.matches?.length || 0} docs`);
+    const searchResults = await pineconeQuery(workspaceNamespace, queryEmbedding, 3);
+    console.log(`📚 Found ${searchResults.matches?.length || 0} docs in workspace`);
 
     if (!searchResults.matches || searchResults.matches.length === 0) {
       return res.json({
         success: true,
-        response: `No documents found for your account. Please upload documents first through the "Upload Files" step.`,
-        answer: `No documents found for your account. Please upload documents first through the "Upload Files" step.`,
+        response: `No documents found in your workspace. Please upload documents first through the "Upload Files" step.`,
+        answer: `No documents found in your workspace. Please upload documents first through the "Upload Files" step.`,
         sources: 0
       });
     }
@@ -728,14 +737,14 @@ async function handleQuery(req, res) {
       },
       {
         role: 'user',
-        content: `Context from uploaded documents:\n${context}\n\nQuestion: ${query}\n\nAnswer:`
+        content: `Context from workspace documents:\n${context}\n\nQuestion: ${query}\n\nAnswer:`
       }
     ]);
 
     res.json({
       success: true,
-      userId,
-      namespace: userNamespace,
+      workspaceId,
+      namespace: workspaceNamespace,
       response,
       answer: response, // Frontend expects 'answer' field
       sources: searchResults.matches.length,
