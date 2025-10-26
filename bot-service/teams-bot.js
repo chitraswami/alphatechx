@@ -543,29 +543,19 @@ app.get('/api/teams/auth', (req, res) => {
 // Upload Files - Support both JSON and multipart/form-data
 app.post('/api/uploads/files', upload.array('files', 20), async (req, res) => {
   try {
-    // Get userId from token or request body
-    const authHeader = req.headers.authorization;
-    let userId = req.body.userId;
+    // Get workspaceId from request body (REQUIRED)
+    const workspaceId = req.body.workspaceId;
     
-    // If no userId in body, try to extract from auth token
-    if (!userId && authHeader) {
-      const token = authHeader.replace('Bearer ', '');
-      // For demo, extract userId from token (in production, verify JWT)
-      try {
-        const decoded = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
-        userId = decoded.userId || decoded.sub || decoded.email;
-      } catch (e) {
-        userId = 'demo-user';
-      }
-    }
-    
-    if (!userId) {
-      userId = 'demo-user'; // Fallback for testing
+    if (!workspaceId) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Workspace ID is required. Please select or create a workspace first.' 
+      });
     }
 
-    console.log(`📤 User ${userId}: Processing upload request`);
+    console.log(`📤 Workspace ${workspaceId}: Processing upload request`);
 
-    const userNamespace = `user-${userId}`;
+    const workspaceNamespace = `workspace-${workspaceId}`;
     const processed = [];
     
     // Handle JSON format (with documents array)
