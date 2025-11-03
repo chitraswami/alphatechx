@@ -27,9 +27,9 @@ const config = {
   pineconeApiKey: process.env.PINECONE_API_KEY,
   pineconeHost: process.env.PINECONE_HOST || 'alphatechx-docs-0pg6xsr.svc.aped-4627-b74a.pinecone.io',
   // AlphaTechX Company Bot - Serves ALL customers
-  microsoftAppId: process.env.MICROSOFT_APP_ID || '897997b6-abe3-40cd-b257-29e8c2117f85',
-  microsoftAppPassword: process.env.MICROSOFT_APP_PASSWORD || 'svW8Q~HfwQcfd12EyBcbUUbwsg1Qur9P6FLXndAo',
-  microsoftTenantId: process.env.MICROSOFT_TENANT_ID || '460fb4b5-0450-4532-8a69-978be450f548'
+  microsoftAppId: process.env.MICROSOFT_APP_ID || '',
+  microsoftAppPassword: process.env.MICROSOFT_APP_PASSWORD || '',
+  microsoftTenantId: process.env.MICROSOFT_TENANT_ID || ''
 };
 
 console.log('🚀 Starting Teams Enterprise Bot...');
