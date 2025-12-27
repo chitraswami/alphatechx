@@ -20,5 +20,8 @@ router.get('/members', workspaceController.getWorkspaceMembers);
 // Update workspace document count
 router.post('/update-documents', workspaceController.updateDocumentCount);
 
+// Link Teams user to workspace
+router.post('/link-teams-user', workspaceController.linkTeamsUser);
+
 module.exports = router;
 

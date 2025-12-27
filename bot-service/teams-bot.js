@@ -221,12 +221,59 @@ async function handleTeamsMessage(activity, userCredentials = null) {
     // Extract Teams user ID and message text
     const teamsUserId = activity.from?.id || activity.conversation?.id || 'unknown-user';
     const messageText = activity.text || '';
+    
+    // Also extract email if available
+    const userEmail = activity.from?.aadObjectId || activity.from?.email || null;
+    console.log(`👤 Teams User Info: ID=${teamsUserId}, Email=${userEmail}`);
 
     if (!messageText.trim()) {
       return {
         type: 'message',
         text: 'Hello! I\'m your AI assistant. Please ask me a question about your workspace documents.'
       };
+    }
+
+    // Handle /link command to manually link workspace
+    if (messageText.startsWith('/link ')) {
+      const workspaceId = messageText.split(' ')[1];
+      if (!workspaceId) {
+        return {
+          type: 'message',
+          text: 'Please provide a workspace ID. Example: /link ws-abc123xyz'
+        };
+      }
+
+      try {
+        const linkResponse = await fetch(`${backendUrl}/api/workspaces/link-teams-user`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            workspaceId,
+            userId: teamsUserId,
+            teamsUserId
+          })
+        });
+
+        const linkData = await linkResponse.json();
+        
+        if (linkData.success) {
+          return {
+            type: 'message',
+            text: `✅ Successfully linked to workspace!\n\nYou can now ask me questions about your documents. Try asking something!`
+          };
+        } else {
+          return {
+            type: 'message',
+            text: `❌ Failed to link workspace: ${linkData.error}\n\nMake sure you're using the correct workspace ID from https://alphatechx.fly.dev/projects/bot`
+          };
+        }
+      } catch (error) {
+        console.error('Error linking workspace:', error);
+        return {
+          type: 'message',
+          text: `❌ Error linking workspace. Please try again later.`
+        };
+      }
     }
 
     console.log(`🔍 Teams query from ${teamsUserId}: "${messageText}"`);
@@ -244,13 +291,18 @@ async function handleTeamsMessage(activity, userCredentials = null) {
           workspaceId = data.workspace.workspaceId;
           workspaceName = data.workspace.name;
           console.log(`✅ Found workspace: ${workspaceId} (${workspaceName})`);
+        } else {
+          console.log(`⚠️ No workspace found for Teams user: ${teamsUserId}`);
         }
+      } else {
+        console.log(`⚠️ Backend response not OK: ${response.status}`);
       }
     } catch (error) {
       console.warn('⚠️ Could not fetch workspace info:', error.message);
     }
 
     if (!workspaceId) {
+      // Show the Teams user ID in the message so user can manually link it
       return {
         type: 'message',
         text: `👋 Welcome! It looks like you haven't set up a workspace yet.
@@ -260,6 +312,8 @@ async function handleTeamsMessage(activity, userCredentials = null) {
 2. Create a new workspace or join an existing one
 3. Upload your documents
 4. Come back here and ask me anything!
+
+🔑 **Your Teams ID (for linking):** \`${teamsUserId}\`
 
 Need help? Just ask! 😊`
       };

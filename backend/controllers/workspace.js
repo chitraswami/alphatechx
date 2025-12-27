@@ -373,3 +373,117 @@ exports.updateDocumentCount = async (req, res) => {
   }
 };
 
+// Link Teams user to workspace
+exports.linkTeamsUser = async (req, res) => {
+  try {
+    const { workspaceId, userId, teamsUserId } = req.body;
+
+    if (!workspaceId || !teamsUserId) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Workspace ID and Teams user ID are required' 
+      });
+    }
+
+    // Find the workspace first
+    const workspace = await Workspace.findOne({ workspaceId });
+    
+    if (!workspace) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Workspace not found. Please check your workspace ID.' 
+      });
+    }
+
+    // Try to find existing member by userId or create new one
+    let member = await WorkspaceMember.findOne({ workspaceId, userId: userId || teamsUserId });
+
+    if (!member) {
+      // If no member found, check if there's a member without Teams ID (created from web)
+      member = await WorkspaceMember.findOne({ workspaceId, teamsUserId: '' });
+      
+      if (!member) {
+        // Create a new member if none exists
+        member = new WorkspaceMember({
+          workspaceId,
+          userId: userId || teamsUserId,
+          teamsUserId,
+          role: 'member'
+        });
+      } else {
+        // Update existing member without Teams ID
+        member.teamsUserId = teamsUserId;
+        if (!member.userId || member.userId === '') {
+          member.userId = userId || teamsUserId;
+        }
+      }
+    } else {
+      // Update existing member's Teams ID
+      member.teamsUserId = teamsUserId;
+    }
+
+    await member.save();
+
+    console.log(`✅ Linked Teams user ${teamsUserId} to workspace ${workspaceId} (${workspace.name})`);
+
+    res.json({
+      success: true,
+      message: `Successfully linked to workspace "${workspace.name}"`,
+      workspace: {
+        workspaceId: workspace.workspaceId,
+        name: workspace.name,
+        role: member.role
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error linking Teams user:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+};
+
+// Link Teams user to workspace
+exports.linkTeamsUser = async (req, res) => {
+  try {
+    const { userId, workspaceId, teamsUserId } = req.body;
+
+    if (!userId || !workspaceId || !teamsUserId) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'userId, workspaceId, and teamsUserId are required' 
+      });
+    }
+
+    // Find the workspace member
+    const member = await WorkspaceMember.findOne({ workspaceId, userId });
+
+    if (!member) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Member not found in workspace' 
+      });
+    }
+
+    // Update Teams user ID
+    member.teamsUserId = teamsUserId;
+    await member.save();
+
+    console.log(`✅ Linked Teams user ${teamsUserId} to workspace ${workspaceId}`);
+
+    res.json({
+      success: true,
+      message: 'Teams user linked successfully'
+    });
+
+  } catch (error) {
+    console.error('❌ Error linking Teams user:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+};
+
