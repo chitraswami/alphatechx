@@ -6,9 +6,9 @@
   "packageName": "com.alphatechx.bot",
   "developer": {
     "name": "AlphaTechX",
-    "websiteUrl": "https://YOUR_DOMAIN",
-    "privacyUrl": "https://YOUR_DOMAIN/privacy",
-    "termsOfUseUrl": "https://YOUR_DOMAIN/terms"
+    "websiteUrl": "https://alfatechx.com",
+    "privacyUrl": "https://alfatechx.com/privacy",
+    "termsOfUseUrl": "https://alfatechx.com/terms"
   },
   "name": {
     "short": "AlphaTechX Bot",
@@ -59,7 +59,7 @@
     "messageTeamMembers"
   ],
   "validDomains": [
-    "YOUR_DOMAIN",
+    "alfatechx.com",
     "*.botframework.com"
   ]
 }

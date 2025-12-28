@@ -10,7 +10,7 @@
 
 3. **Set Messaging Endpoint**:
    - Click **Configuration**
-   - Set endpoint to: `https://YOUR_DOMAIN/api/teams/messages`
+   - Set endpoint to: `https://alfatechx.com/api/teams/messages`
    - Click **Apply**
 
 4. **Enable Teams Channel**:
@@ -35,7 +35,7 @@
 
 ### Step 3: Upload Documents & Ask Questions (1 minute)
 
-1. Go to https://YOUR_DOMAIN
+1. Go to https://alfatechx.com
 2. Sign up with your Teams user ID
 3. Upload a document
 4. Return to Teams and ask questions!
@@ -48,8 +48,8 @@
 |------|----------|---------|
 | Teams App Package | `teams-app/AlphaTechX-Bot.zip` | Share with users to install |
 | Setup Guide | `TEAMS_SETUP_GUIDE.md` | Complete documentation |
-| Bot Service | https://YOUR_DOMAIN | Running on Digital Ocean |
-| Web UI | https://YOUR_DOMAIN | Users upload documents here |
+| Bot Service | https://alfatechx.com | Running on Digital Ocean |
+| Web UI | https://alfatechx.com | Users upload documents here |
 
 ---
 
@@ -67,7 +67,7 @@
 
 **Microsoft App ID**: `897997b6-abe3-40cd-b257-29e8c2117f85`  
 **Tenant ID**: `460fb4b5-0450-4532-8a69-978be450f548`  
-**Webhook URL**: `https://YOUR_DOMAIN/api/teams/messages`
+**Webhook URL**: `https://alfatechx.com/api/teams/messages`
 
 ---
 

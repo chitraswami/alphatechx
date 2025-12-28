@@ -91,7 +91,7 @@ User chats with bot in Teams
     ↓
 Bot provides their unique user ID
     ↓
-User goes to https://YOUR_DOMAIN
+User goes to https://alfatechx.com
     ↓
 Signs up with their user ID
     ↓
@@ -191,9 +191,9 @@ alphatechx/
 ```
 
 ### Deployed Services:
-- **Frontend**: https://YOUR_DOMAIN
-- **Backend API**: https://YOUR_DOMAIN/api
-- **Bot Service**: https://YOUR_DOMAIN/api/teams/messages
+- **Frontend**: https://alfatechx.com
+- **Backend API**: https://alfatechx.com/api
+- **Bot Service**: https://alfatechx.com/api/teams/messages
 - **Database**: MongoDB Atlas
 - **Vector DB**: Pinecone
 - **AI**: OpenAI GPT-4 + Embeddings
@@ -219,7 +219,7 @@ alphatechx/
 ### 1. Azure Portal Configuration (5 minutes)
 
 Go to Azure Portal and:
-1. Set messaging endpoint: `https://YOUR_DOMAIN/api/teams/messages`
+1. Set messaging endpoint: `https://alfatechx.com/api/teams/messages`
 2. Enable Microsoft Teams channel
 3. Make app registration multi-tenant
 

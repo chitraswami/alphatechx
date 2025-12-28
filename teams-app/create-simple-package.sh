@@ -27,7 +27,7 @@ if [ -f "AlphaTechX-Bot.zip" ]; then
   echo "📤 Next steps:"
   echo "1. Go to Azure Portal → Your Bot → Channels"
   echo "2. Enable Microsoft Teams channel"
-  echo "3. Configure messaging endpoint: https://YOUR_DOMAIN/api/teams/messages"
+  echo "3. Configure messaging endpoint: https://alfatechx.com/api/teams/messages"
   echo "4. In Teams, go to Apps → 'Upload a custom app'"
   echo "5. Upload AlphaTechX-Bot.zip"
   echo "6. Click 'Add' to install the bot"

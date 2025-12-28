@@ -308,7 +308,7 @@ async function handleTeamsMessage(activity, userCredentials = null) {
         text: `👋 Welcome! It looks like you haven't set up a workspace yet.
 
 📝 **To get started:**
-1. Go to ${process.env.BOT_SERVICE_URL || 'https://YOUR_DOMAIN'}
+1. Go to ${process.env.BOT_SERVICE_URL || 'https://alfatechx.com'}
 2. Create a new workspace or join an existing one
 3. Upload your documents
 4. Come back here and ask me anything!
@@ -332,7 +332,7 @@ Need help? Just ask! 😊`
         type: 'message',
         text: `I don't have any documents in your workspace "${workspaceName}" yet. 
 
-📝 Please upload documents at ${process.env.BOT_SERVICE_URL || 'https://YOUR_DOMAIN'} to get started!`
+📝 Please upload documents at ${process.env.BOT_SERVICE_URL || 'https://alfatechx.com'} to get started!`
       };
     }
 
@@ -559,7 +559,7 @@ app.post('/api/teams/messages', async (req, res) => {
 🚀 **I'm ready to help!** Just ask me questions about your documents.
 
 📝 **First time?** Set up your workspace:
-1. Go to: ${process.env.BOT_SERVICE_URL || 'https://YOUR_DOMAIN'}
+1. Go to: ${process.env.BOT_SERVICE_URL || 'https://alfatechx.com'}
 2. Click "Connect with Teams"
 3. Upload your team's documents
 4. Come back and ask me anything!
