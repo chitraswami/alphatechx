@@ -18,7 +18,7 @@ You have a **complete enterprise-grade SaaS bot platform** that allows unlimited
 │  └──────────────────────────────────────────────────────┘   │
 │                                                              │
 │  ┌──────────────────────────────────────────────────────┐   │
-│  │  Bot Service (Fly.io)                                │   │
+│  │  Bot Service (Digital Ocean)                         │   │
 │  │  - Receives Teams messages                           │   │
 │  │  - Processes documents                               │   │
 │  │  - Queries Pinecone                                  │   │
@@ -91,7 +91,7 @@ User chats with bot in Teams
     ↓
 Bot provides their unique user ID
     ↓
-User goes to https://alphatechx.fly.dev
+User goes to https://YOUR_DOMAIN
     ↓
 Signs up with their user ID
     ↓
@@ -191,9 +191,9 @@ alphatechx/
 ```
 
 ### Deployed Services:
-- **Frontend**: https://alphatechx.fly.dev
-- **Backend API**: https://alphatechx.fly.dev/api
-- **Bot Service**: https://alphatechx.fly.dev/api/teams/messages
+- **Frontend**: https://YOUR_DOMAIN
+- **Backend API**: https://YOUR_DOMAIN/api
+- **Bot Service**: https://YOUR_DOMAIN/api/teams/messages
 - **Database**: MongoDB Atlas
 - **Vector DB**: Pinecone
 - **AI**: OpenAI GPT-4 + Embeddings
@@ -204,7 +204,7 @@ alphatechx/
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| Bot Service Code | ✅ Complete | Deployed to Fly.io |
+| Bot Service Code | ✅ Complete | Deployed to Digital Ocean |
 | Teams App Package | ✅ Complete | Ready to distribute |
 | Data Isolation | ✅ Complete | Pinecone namespaces |
 | Multi-Tenant Support | ✅ Complete | Works for any org |
@@ -219,7 +219,7 @@ alphatechx/
 ### 1. Azure Portal Configuration (5 minutes)
 
 Go to Azure Portal and:
-1. Set messaging endpoint: `https://alphatechx.fly.dev/api/teams/messages`
+1. Set messaging endpoint: `https://YOUR_DOMAIN/api/teams/messages`
 2. Enable Microsoft Teams channel
 3. Make app registration multi-tenant
 
@@ -300,7 +300,7 @@ Share `teams-app/AlphaTechX-Bot.zip` with customers via:
 **Bot not responding in Teams**:
 - Check messaging endpoint in Azure
 - Check Teams channel is enabled
-- Check Fly.io logs: `flyctl logs`
+- Check server logs: `docker compose logs bot-service`
 
 **User can't find their documents**:
 - Verify they used correct user ID
@@ -314,7 +314,7 @@ Share `teams-app/AlphaTechX-Bot.zip` with customers via:
 
 ### Getting Help:
 1. Check `TEAMS_SETUP_GUIDE.md` for detailed docs
-2. Check Fly.io logs for errors
+2. Check Docker logs for errors
 3. Check Azure Bot logs in Azure Portal
 4. Verify webhook receives requests
 
@@ -380,5 +380,5 @@ You're ready to scale! 🚀
 
 **Ready to test?** Follow the steps in `QUICK_START.md`
 
-**Need help?** Run `flyctl logs` to see what's happening
+**Need help?** Run `docker compose logs` to see what's happening
 

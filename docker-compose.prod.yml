@@ -1,0 +1,86 @@
+# Production Docker Compose for Digital Ocean Deployment
+# AlphaTechX - $4/month Digital Ocean Droplet
+
+services:
+  # Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../backend.Dockerfile
+    container_name: alphatechx-backend
+    environment:
+      NODE_ENV: production
+      PORT: 5001
+      MONGODB_URI: ${MONGODB_URI}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRE: ${JWT_EXPIRE:-30d}
+    ports:
+      - "5001:5001"
+    volumes:
+      - backend_uploads:/app/uploads
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Bot Service
+  bot-service:
+    build:
+      context: ./bot-service
+      dockerfile: Dockerfile
+    container_name: alphatechx-bot-service
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      # OpenAI Configuration
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      # Pinecone Configuration
+      PINECONE_API_KEY: ${PINECONE_API_KEY}
+      PINECONE_ENVIRONMENT: ${PINECONE_ENVIRONMENT:-us-east-1-aws}
+      PINECONE_INDEX_NAME: ${PINECONE_INDEX_NAME:-alphatechx-docs}
+      # Microsoft Teams Bot Configuration
+      MICROSOFT_APP_ID: ${MICROSOFT_APP_ID}
+      MICROSOFT_APP_PASSWORD: ${MICROSOFT_APP_PASSWORD}
+      BOT_SERVICE_URL: ${BOT_SERVICE_URL:-http://localhost:4000}
+      # JWT
+      JWT_SECRET: ${JWT_SECRET}
+      # Optional Integrations
+      SLACK_REDIRECT_URI: ${SLACK_REDIRECT_URI:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+    ports:
+      - "4000:4000"
+    volumes:
+      - bot_uploads:/app/uploads
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: ${FRONTEND_URL:-http://localhost}/api
+        REACT_APP_BOT_API_URL: ${FRONTEND_URL:-http://localhost}/api
+    container_name: alphatechx-frontend
+    environment:
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    restart: always
+    depends_on:
+      - backend
+      - bot-service
+
+volumes:
+  backend_uploads:
+  bot_uploads:

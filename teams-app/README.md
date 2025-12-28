@@ -52,7 +52,7 @@ This directory contains the Microsoft Teams app package for AlphaTechX Bot.
 Once installed:
 1. User opens chat with AlphaTechX Bot in Teams
 2. Bot greets them and provides their unique user ID
-3. User goes to https://alphatechx.fly.dev
+3. User goes to https://YOUR_DOMAIN
 4. Signs up/logs in with that user ID
 5. Uploads documents
 6. Returns to Teams and asks questions!
@@ -61,7 +61,7 @@ Once installed:
 
 The bot is already configured with:
 - Bot ID: `17f24117-7419-4fa2-bd29-f77504c40e03`
-- Webhook URL: `https://alphatechx.fly.dev/api/teams/messages`
+- Webhook URL: `https://YOUR_DOMAIN/api/teams/messages`
 - Multi-tenant support: ✅ Enabled
 - Data isolation: ✅ Per-user namespaces in Pinecone
 

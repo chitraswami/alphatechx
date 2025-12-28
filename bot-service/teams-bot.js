@@ -264,7 +264,7 @@ async function handleTeamsMessage(activity, userCredentials = null) {
         } else {
           return {
             type: 'message',
-            text: `❌ Failed to link workspace: ${linkData.error}\n\nMake sure you're using the correct workspace ID from https://alphatechx.fly.dev/projects/bot`
+            text: `❌ Failed to link workspace: ${linkData.error}\n\nMake sure you're using the correct workspace ID from ${process.env.BOT_SERVICE_URL || 'your domain'}/projects/bot`
           };
         }
       } catch (error) {
@@ -308,7 +308,7 @@ async function handleTeamsMessage(activity, userCredentials = null) {
         text: `👋 Welcome! It looks like you haven't set up a workspace yet.
 
 📝 **To get started:**
-1. Go to https://alphatechx.fly.dev
+1. Go to ${process.env.BOT_SERVICE_URL || 'https://YOUR_DOMAIN'}
 2. Create a new workspace or join an existing one
 3. Upload your documents
 4. Come back here and ask me anything!
@@ -332,7 +332,7 @@ Need help? Just ask! 😊`
         type: 'message',
         text: `I don't have any documents in your workspace "${workspaceName}" yet. 
 
-📝 Please upload documents at https://alphatechx.fly.dev to get started!`
+📝 Please upload documents at ${process.env.BOT_SERVICE_URL || 'https://YOUR_DOMAIN'} to get started!`
       };
     }
 
@@ -559,7 +559,7 @@ app.post('/api/teams/messages', async (req, res) => {
 🚀 **I'm ready to help!** Just ask me questions about your documents.
 
 📝 **First time?** Set up your workspace:
-1. Go to: https://alphatechx.fly.dev
+1. Go to: ${process.env.BOT_SERVICE_URL || 'https://YOUR_DOMAIN'}
 2. Click "Connect with Teams"
 3. Upload your team's documents
 4. Come back and ask me anything!
