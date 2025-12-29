@@ -17,5 +17,5 @@ RUN npm run build
 # Expose port
 EXPOSE 4000
 
-# Start the application
-CMD ["node", "enterprise-bot-server.js"] 
+# Start the Teams Bot application (full Bot Framework implementation)
+CMD ["node", "teams-bot.js"] 

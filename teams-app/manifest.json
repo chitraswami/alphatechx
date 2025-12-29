@@ -2,7 +2,7 @@
   "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.16/MicrosoftTeams.schema.json",
   "manifestVersion": "1.16",
   "version": "1.0.0",
-  "id": "897997b6-abe3-40cd-b257-29e8c2117f85",
+  "id": "c719ed12-8f50-430f-b559-3a3fae5d4e1f",
   "packageName": "com.alphatechx.bot",
   "developer": {
     "name": "AlphaTechX",
@@ -25,7 +25,7 @@
   "accentColor": "#4F46E5",
   "bots": [
     {
-      "botId": "897997b6-abe3-40cd-b257-29e8c2117f85",
+      "botId": "c719ed12-8f50-430f-b559-3a3fae5d4e1f",
       "scopes": [
         "personal",
         "team",
