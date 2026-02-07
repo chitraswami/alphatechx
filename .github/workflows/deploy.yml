@@ -30,6 +30,10 @@ jobs:
             sudo su - root -c "cd /root/alphatechx && \
             echo '🔄 Pulling latest code...' && \
             git pull origin main || git pull origin master && \
+            echo '🏗️  Building frontend...' && \
+            docker run --rm -v \$(pwd)/frontend:/app -w /app node:20-alpine sh -c 'npm ci && npm run build' && \
+            echo '📦 Copying frontend build to nginx...' && \
+            cp -r /root/alphatechx/frontend/build/* /var/www/alfatechx/ && \
             echo '🛑 Stopping existing containers...' && \
             docker compose -f docker-compose.prod.yml down || true && \
             echo '🏗️  Building containers...' && \
