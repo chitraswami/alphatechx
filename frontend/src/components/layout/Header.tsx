@@ -53,8 +53,7 @@ const Header: React.FC = () => {
           <div className="flex-shrink-0">
             <Link to="/" className="block">
               <Logo
-                width={160}
-                height={48}
+                size="sm"
                 variant={isScrolled ? 'dark' : 'dark'}
                 className="transition-all duration-300"
               />

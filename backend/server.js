@@ -70,6 +70,15 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', service: 'backend' });
 });
 
+// API Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Alfa TechX API is running!',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
@@ -125,15 +134,6 @@ app.delete('/api/integrations/delete', async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Error deleting integration' });
   }
-});
-
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: 'Alfa TechX API is running!',
-    timestamp: new Date().toISOString(),
-  });
 });
 
 // Error handling middleware
