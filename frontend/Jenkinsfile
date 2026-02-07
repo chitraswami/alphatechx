@@ -1,0 +1,98 @@
+@Library('pipeline-shared-library') _
+
+pipeline {
+    agent any
+    
+    environment {
+        DOCKER_IMAGE = 'skswami91/alphatechx-frontend'
+        DOCKER_TAG = "${BUILD_NUMBER}"
+        DOCKER_REGISTRY_URL = 'https://index.docker.io/v1/'
+        DOCKER_REGISTRY_CREDENTIALS = 'dockerCreds'
+        
+        // Git repository for K8s manifests
+        K8S_MANIFESTS_REPO = 'https://github.com/chitraswami/k8s-manifests-2025.git'
+        K8S_MANIFESTS_BRANCH = 'master'
+        GIT_CREDENTIALS_ID = '1360ab06-c1b5-4bc8-bc4d-89977f8400cf'
+        
+        // Helm chart values
+        CHART_PATH = 'alphatechx'
+        RELEASE_NAME = 'alphatechx'
+        NAMESPACE = 'default'
+        
+        // React app build environment
+        REACT_APP_API_URL = 'http://a7d572ec841164cb79c98f6d802941d5-1793032518.us-east-1.elb.amazonaws.com/alphatechx/api'
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dockerBuild([
+                        imageName: env.DOCKER_IMAGE,
+                        tag: env.DOCKER_TAG,
+                        dockerFile: 'frontend/Dockerfile',
+                        buildContext: 'frontend',
+                        buildArgs: [
+                            "REACT_APP_API_URL=${env.REACT_APP_API_URL}"
+                        ]
+                    ])
+                }
+            }
+        }
+        
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    dockerPush([
+                        imageName: env.DOCKER_IMAGE,
+                        tag: env.DOCKER_TAG,
+                        registryUrl: env.DOCKER_REGISTRY_URL,
+                        credentialsId: env.DOCKER_REGISTRY_CREDENTIALS
+                    ])
+                }
+            }
+        }
+        
+        stage('Update Helm Chart') {
+            steps {
+                script {
+                    // Update frontend image tag in values.yaml
+                    sh """
+                        git clone ${env.K8S_MANIFESTS_REPO} k8s-manifests
+                        cd k8s-manifests/${env.CHART_PATH}
+                        
+                        # Update frontend image tag
+                        sed -i 's/tag: ".*"/tag: "${env.DOCKER_TAG}"/g' values.yaml
+                        
+                        # Commit and push changes
+                        git config user.email "jenkins@alphatechx.com"
+                        git config user.name "Jenkins CI"
+                        git add values.yaml
+                        git commit -m "Update frontend image to ${env.DOCKER_TAG}"
+                        git push origin ${env.K8S_MANIFESTS_BRANCH}
+                    """
+                }
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo "✅ Frontend pipeline completed successfully!"
+            echo "🚀 Frontend image: ${env.DOCKER_IMAGE}:${env.DOCKER_TAG}"
+            echo "🌐 API URL: ${env.REACT_APP_API_URL}"
+        }
+        failure {
+            echo "❌ Frontend pipeline failed!"
+        }
+        always {
+            cleanWs()
+        }
+    }
+} 

@@ -1,0 +1,78 @@
+name: Deploy to Digital Ocean
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch: # Allow manual triggers
+
+jobs:
+  deploy:
+    name: Deploy to alfatechx.com
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Digital Ocean
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DROPLET_IP }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            cd /root/alphatechx
+            
+            echo "🔄 Pulling latest code..."
+            git pull origin main || git pull origin master
+            
+            echo "🛑 Stopping existing containers..."
+            docker compose -f docker-compose.prod.yml down || true
+            
+            echo "🏗️  Building containers..."
+            docker compose -f docker-compose.prod.yml build --no-cache
+            
+            echo "🚀 Starting services..."
+            docker compose -f docker-compose.prod.yml up -d
+            
+            echo "⏳ Waiting for services to start..."
+            sleep 10
+            
+            echo "✅ Checking service status..."
+            docker compose -f docker-compose.prod.yml ps
+            
+            echo "🧹 Cleaning up unused Docker resources..."
+            docker system prune -af --volumes || true
+            
+            echo "✅ Deployment complete!"
+            
+      - name: Health Check
+        run: |
+          echo "🏥 Waiting for services to be healthy..."
+          sleep 15
+          
+          echo "🔍 Checking frontend..."
+          curl -f https://alfatechx.com || echo "⚠️  Frontend check failed"
+          
+          echo "🔍 Checking backend API..."
+          curl -f https://alfatechx.com/api/health || echo "⚠️  Backend check failed"
+          
+          echo "🔍 Checking bot service..."
+          curl -f https://alfatechx.com/api/teams/messages || echo "⚠️  Bot service check failed"
+          
+          echo "✅ Health checks complete!"
+
+      - name: Notify on Success
+        if: success()
+        run: |
+          echo "✅ Deployment to alfatechx.com successful!"
+          echo "🌐 Website: https://alfatechx.com"
+          echo "📱 Bot Service: https://alfatechx.com/api/teams/messages"
+
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          echo "❌ Deployment failed! Check logs above."

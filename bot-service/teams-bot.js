@@ -279,7 +279,7 @@ async function handleTeamsMessage(activity, userCredentials = null) {
     console.log(`🔍 Teams query from ${teamsUserId}: "${messageText}"`);
 
     // Check if user has a workspace
-    const backendUrl = process.env.BACKEND_URL || 'http://localhost:5001';
+    const backendUrl = process.env.BACKEND_URL || 'https://alfatechx.com';
     let workspaceId = null;
     let workspaceName = null;
 

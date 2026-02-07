@@ -88,4 +88,10 @@ Thumbs.db
 
 # Upload directories
 backend/uploads/*
-!backend/uploads/.gitkeep 
+!backend/uploads/.gitkeep
+
+# Fly.io (not used - deployed on Digital Ocean)
+fly.toml
+.fly/
+Dockerfile.flyio
+nginx.flyio.conf 
