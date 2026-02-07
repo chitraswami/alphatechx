@@ -23,6 +23,7 @@ jobs:
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
+          command_timeout: 20m
           script: |
             echo "🚀 Starting deployment to alfatechx.com..."
             
@@ -44,8 +45,8 @@ jobs:
             sleep 10 && \
             echo '✅ Checking service status...' && \
             docker compose -f docker-compose.prod.yml ps && \
-            echo '🧹 Cleaning up unused Docker resources...' && \
-            docker system prune -af --volumes || true && \
+            echo '🧹 Cleaning up old images...' && \
+            docker image prune -f && \
             echo '✅ Deployment complete!'"
             
       - name: Health Check
