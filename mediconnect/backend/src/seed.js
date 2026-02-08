@@ -26,7 +26,7 @@ async function seed() {
       name: 'City Care Hospital',
       slug: 'city-care-hospital',
       address: '123 MG Road, Sector 15, Noida, UP 201301',
-      phone: '01140036376',
+      phoneNumber: '01140036376',
       email: 'info@citycarehospital.in',
       exophoneNumber: '01140036376',
       isActive: true,
