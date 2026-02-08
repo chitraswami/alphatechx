@@ -16,16 +16,19 @@ const hospitalSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  twilioPhoneNumber: {
+  exophoneNumber: {
     type: String,
     unique: true,
     sparse: true // Allows null values but enforces uniqueness when present
   },
+  email: {
+    type: String,
+    trim: true,
+    lowercase: true
+  },
   address: {
-    street: String,
-    city: String,
-    state: String,
-    pincode: String
+    type: String,
+    trim: true
   },
   settings: {
     workingHours: {

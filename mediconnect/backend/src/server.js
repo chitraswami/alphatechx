@@ -37,6 +37,7 @@ const appointmentRoutes = require('./routes/appointment');
 const patientRoutes = require('./routes/patient');
 const conversationRoutes = require('./routes/conversation');
 const analyticsRoutes = require('./routes/analytics');
+const voiceRoutes = require('./routes/voice');
 
 app.use('/api/hospitals', hospitalRoutes);
 app.use('/api/doctors', doctorRoutes);
@@ -44,6 +45,7 @@ app.use('/api/appointments', appointmentRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/conversations', conversationRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/voice', voiceRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

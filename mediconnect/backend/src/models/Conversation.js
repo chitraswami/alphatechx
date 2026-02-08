@@ -4,20 +4,20 @@ const conversationSchema = new mongoose.Schema({
   callSid: {
     type: String,
     unique: true,
-    sparse: true // For Twilio calls
+    sparse: true
   },
   hospitalId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Hospital',
+    ref: 'Hospital'
+  },
+  hospitalName: String,
+  callerNumber: {
+    type: String,
     required: true
   },
   patientId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Patient'
-  },
-  patientPhone: {
-    type: String,
-    required: true
   },
   channel: {
     type: String,
@@ -26,60 +26,29 @@ const conversationSchema = new mongoose.Schema({
   },
   language: {
     type: String,
-    enum: ['hi', 'en', 'mixed'],
-    default: 'hi'
+    default: 'hi-IN'
   },
-  // Conversation turns
-  messages: [{
-    role: {
-      type: String,
-      enum: ['bot', 'patient', 'system']
-    },
-    text: String,
+  // Conversation turns (voice call dialogue)
+  turns: [{
+    userSpeech: String,
+    botResponse: String,
     timestamp: {
       type: Date,
       default: Date.now
     },
-    intent: String, // Detected intent
-    entities: mongoose.Schema.Types.Mixed // Extracted entities
   }],
-  // Full transcript
-  transcript: {
-    raw: String, // Raw speech-to-text
-    cleaned: String // Cleaned and formatted
-  },
   // Conversation state
-  currentState: {
+  state: {
     type: String,
-    enum: [
-      'greeting',
-      'language_detection',
-      'symptom_collection',
-      'specialty_routing',
-      'doctor_selection',
-      'time_selection',
-      'patient_info',
-      'confirmation',
-      'booking',
-      'closure',
-      'escalation'
-    ],
     default: 'greeting'
   },
-  collectedData: {
-    symptoms: [String],
-    specialty: String,
-    selectedDoctor: mongoose.Schema.Types.ObjectId,
-    selectedDate: Date,
-    selectedTime: String,
-    patientName: String,
-    patientAge: Number
+  status: {
+    type: String,
+    enum: ['in_progress', 'completed', 'failed', 'abandoned'],
+    default: 'in_progress'
   },
+  callStatus: String,
   // Outcome
-  bookingSuccessful: {
-    type: Boolean,
-    default: false
-  },
   appointmentId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Appointment'
