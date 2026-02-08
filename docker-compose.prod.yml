@@ -81,6 +81,37 @@ services:
       - backend
       - bot-service
 
+  # MediConnect Voice Bot Service
+  mediconnect:
+    build:
+      context: ./mediconnect/backend
+      dockerfile: Dockerfile
+    container_name: alphatechx-mediconnect
+    environment:
+      NODE_ENV: production
+      PORT: 6000
+      MONGODB_URI: ${MONGODB_URI}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: gpt-4o-mini
+      GCP_PROJECT_ID: ${GCP_PROJECT_ID:-zinc-forge-310508}
+      GOOGLE_APPLICATION_CREDENTIALS: /app/gcp-service-account.json
+      EXOTEL_API_KEY: ${EXOTEL_API_KEY}
+      EXOTEL_API_TOKEN: ${EXOTEL_API_TOKEN}
+      EXOTEL_SID: ${EXOTEL_SID}
+      EXOTEL_EXOPHONE: ${EXOTEL_EXOPHONE:-01140036376}
+      MEDICONNECT_BASE_URL: ${MEDICONNECT_BASE_URL:-https://alfatechx.com/mediconnect}
+    ports:
+      - "6000:6000"
+    volumes:
+      - ./mediconnect/gcp-service-account.json:/app/gcp-service-account.json:ro
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
 volumes:
   backend_uploads:
   bot_uploads:
