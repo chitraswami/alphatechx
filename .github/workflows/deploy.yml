@@ -42,7 +42,9 @@ jobs:
             echo '🚀 Starting services...' && \
             docker compose -f docker-compose.prod.yml up -d && \
             echo '⏳ Waiting for services to start...' && \
-            sleep 10 && \
+            sleep 15 && \
+            echo '🌱 Seeding MediConnect demo data...' && \
+            docker exec alphatechx-mediconnect npm run seed || echo '⚠️  Seed already run or failed' && \
             echo '✅ Checking service status...' && \
             docker compose -f docker-compose.prod.yml ps && \
             echo '🧹 Cleaning up old images...' && \
@@ -63,6 +65,9 @@ jobs:
           echo "🔍 Checking bot service..."
           curl -f https://alfatechx.com/api/teams/messages || echo "⚠️  Bot service check failed"
           
+          echo "🔍 Checking MediConnect..."
+          curl -f https://alfatechx.com/mediconnect/api/health || echo "⚠️  MediConnect check failed"
+          
           echo "✅ Health checks complete!"
 
       - name: Notify on Success
@@ -71,6 +76,8 @@ jobs:
           echo "✅ Deployment to alfatechx.com successful!"
           echo "🌐 Website: https://alfatechx.com"
           echo "📱 Bot Service: https://alfatechx.com/api/teams/messages"
+          echo "🏥 MediConnect: https://alfatechx.com/mediconnect/api/health"
+          echo "📞 Exophone: 01140036376"
 
       - name: Notify on Failure
         if: failure()
