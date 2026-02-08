@@ -10,7 +10,9 @@ const connectDatabase = async () => {
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.error('Database connection error:', error.message);
-    process.exit(1);
+    console.warn('⚠️  Backend starting without database connection');
+    // Don't exit - allow backend to start for health checks
+    // process.exit(1);
   }
 };
 
